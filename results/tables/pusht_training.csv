@@ -1,0 +1,3 @@
+seed,initial_loss,final_loss,loss_ratio,epochs,diffusion_steps,target,benchmark
+1,0.9974414706230164,0.9957771897315979,0.9983314500745804,5,16,epsilon,PushT
+2,0.9590882658958435,0.9567914009094238,0.9976051578690995,5,16,epsilon,PushT

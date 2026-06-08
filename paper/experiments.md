@@ -31,3 +31,11 @@ Scorers include random selection, diffusion likelihood proxy, behavior-cloning c
 ## Family D: N Versus K Budget Law
 
 A phase diagram sweeps `N` and `K` and reports real utility, total budget `B = N x K`, utility per diffusion step, and latency-adjusted utility.
+
+## Family E: True Action DDPM/DDIM
+
+An epsilon-prediction action diffusion model trains on multimodal action trajectories. Evaluation compares DDIM fast sampling, stochastic DDPM-style sampling, one-step consistency-style sampling, and the clean-target denoiser ablation under shared `N` and `K` grids. Scorers include diffusion-internal residual score, behavior cloning, pilot value critic, calibrated critic, weakly aligned score, anti-correlated score, tail-only misaligned score, and oracle real utility.
+
+## Family F: PushT Simulator Benchmark
+
+The PushT path uses `gym_pusht/PushT-v0` with actual simulator rollout utility for sampled action trajectories. Training demonstrations are heuristic and CPU-friendly; the claim is benchmark-path evidence for the reranking law, not full-scale visual Diffusion Policy validation. Regimes include aligned sampling, low-diversity sampling, and high-temperature misaligned-score failure.

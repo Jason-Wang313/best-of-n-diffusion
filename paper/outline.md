@@ -2,7 +2,7 @@
 
 ## Title
 
-How Many Diffusion Trajectories Should a Robot Sample? Best-of-N Laws for Diffusion Policy Reranking
+How Many Diffusion Trajectories Should a Robot Sample? Inference-Time Selection Laws for Diffusion Policies
 
 ## Thesis
 
@@ -13,6 +13,6 @@ Best-of-N inference is valuable for diffusion action policies only when sampled 
 1. Introduction: inference-time trajectory selection and diffusion tail over-selection.
 2. Formal setup: finite tie-aware Best-of-N law for `(S, U)` action-trajectory pools.
 3. Diagnostics: diversity, alignment, denoising/latency, deployment gate.
-4. Experiments: controlled sampler, learned state/image Diffusion Policy-lite, scorer comparison with calibration success/failure map, `N` versus `K`.
+4. Experiments: controlled sampler, learned state/image Diffusion Policy-lite, true action DDPM/DDIM, scorer comparison with calibration success/failure map, `N` versus `K`, and PushT simulator benchmark.
 5. Audit readiness: CI-backed claim gates, artifact inventory, CPU-only scope.
-6. Limitations: synthetic evidence, toy learned model, no broad real-robot claim.
+6. Limitations: CPU simulator evidence, toy learned model, no broad real-robot claim.

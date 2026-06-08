@@ -96,13 +96,81 @@ def marginal_diversity_gain(trajectories, n_values: Iterable[int]) -> dict[int, 
     return out
 
 
+def trajectory_cluster_ids(
+    trajectories,
+    distance_threshold: float | None = None,
+    max_clusters: int = 8,
+) -> np.ndarray:
+    """Greedy trajectory clusters for mode coverage diagnostics."""
+
+    arr = _as_trajectories(trajectories)
+    flat = arr.reshape(arr.shape[0], -1)
+    if int(max_clusters) < 1:
+        raise ValueError("max_clusters must be >= 1")
+    if distance_threshold is None:
+        distances = pairwise_action_trajectory_distance(arr)
+        nonzero = distances[distances > 0]
+        distance_threshold = float(np.quantile(nonzero, 0.35)) if nonzero.size else 1e-6
+    if not np.isfinite(distance_threshold) or float(distance_threshold) < 0.0:
+        raise ValueError("distance_threshold must be non-negative and finite")
+
+    centers: list[np.ndarray] = []
+    labels = np.empty(arr.shape[0], dtype=int)
+    for i, row in enumerate(flat):
+        if not centers:
+            centers.append(row.copy())
+            labels[i] = 0
+            continue
+        dists = np.asarray([np.linalg.norm(row - center) for center in centers], dtype=float)
+        nearest = int(np.argmin(dists))
+        if dists[nearest] > float(distance_threshold) and len(centers) < int(max_clusters):
+            centers.append(row.copy())
+            labels[i] = len(centers) - 1
+        else:
+            labels[i] = nearest
+    return labels
+
+
+def cluster_entropy(labels: Iterable[int]) -> float:
+    """Normalized entropy over discovered trajectory clusters."""
+
+    arr = np.asarray(list(labels), dtype=int)
+    if arr.size == 0:
+        raise ValueError("labels must be non-empty")
+    _, counts = np.unique(arr, return_counts=True)
+    probs = counts.astype(float) / float(np.sum(counts))
+    entropy = -float(np.sum(probs * np.log(probs + 1e-12)))
+    denom = np.log(max(len(counts), 2))
+    return float(entropy / denom)
+
+
+def marginal_new_mode_discovery(labels: Iterable[int], n_values: Iterable[int]) -> dict[int, float]:
+    """Number of newly discovered trajectory clusters in each larger prefix."""
+
+    arr = np.asarray(list(labels), dtype=int)
+    if arr.size == 0:
+        raise ValueError("labels must be non-empty")
+    out: dict[int, float] = {}
+    prev_seen: set[int] = set()
+    for n in sorted(int(v) for v in n_values):
+        if n < 1 or n > arr.size:
+            raise ValueError("all N values must be between 1 and the number of labels")
+        seen = {int(x) for x in arr[:n]}
+        out[n] = float(len(seen - prev_seen))
+        prev_seen = seen
+    return out
+
+
 def diversity_summary(trajectories, mode_ids=None, expected_modes: int | Iterable[int] | None = None) -> dict[str, float]:
     """Compact diversity summary for one candidate pool."""
 
+    labels = trajectory_cluster_ids(trajectories)
     summary = {
         "mean_pairwise_distance": mean_pairwise_distance(trajectories),
         "effective_sample_diversity": effective_sample_diversity(trajectories),
         "duplicate_collapse_rate": duplicate_collapse_rate(trajectories),
+        "trajectory_cluster_count": float(len(set(int(x) for x in labels))),
+        "trajectory_cluster_entropy": cluster_entropy(labels),
     }
     if mode_ids is not None and expected_modes is not None:
         summary["mode_coverage"] = mode_coverage(mode_ids, expected_modes)

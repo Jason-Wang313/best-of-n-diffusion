@@ -159,6 +159,8 @@ def main() -> None:
     scorer = load_json("scorer_comparison_summary.json")
     nk = load_json("nk_budget_summary.json")
     learned = load_json("learned_policy_lite_summary.json")
+    true_diffusion = load_json("true_diffusion_summary.json")
+    pusht = load_json("pusht_summary.json")
     controlled_agg = csv_rows(RESULTS / "tables" / "controlled_sampler_aggregate.csv")
     controlled_div = csv_rows(RESULTS / "tables" / "controlled_sampler_diversity.csv")
     controlled_effect_cis = csv_rows(RESULTS / "tables" / "controlled_sampler_effect_cis.csv")
@@ -171,6 +173,17 @@ def main() -> None:
     learned_effect_cis = csv_rows(RESULTS / "tables" / "learned_policy_lite_effect_cis.csv")
     learned_training = csv_rows(RESULTS / "tables" / "learned_policy_lite_training.csv")
     learned_receding = csv_rows(RESULTS / "tables" / "learned_policy_lite_receding_horizon.csv")
+    true_effect_cis = csv_rows(RESULTS / "tables" / "true_diffusion_effect_cis.csv")
+    true_gap_cis = csv_rows(RESULTS / "tables" / "true_diffusion_scorer_gap_cis.csv")
+    true_training = csv_rows(RESULTS / "tables" / "true_diffusion_training.csv")
+    true_runtime = csv_rows(RESULTS / "tables" / "true_diffusion_runtime.csv")
+    true_agg = csv_rows(RESULTS / "tables" / "true_diffusion_aggregate.csv")
+    pusht_effect_cis = csv_rows(RESULTS / "tables" / "pusht_effect_cis.csv")
+    pusht_gap_cis = csv_rows(RESULTS / "tables" / "pusht_scorer_gap_cis.csv")
+    pusht_training = csv_rows(RESULTS / "tables" / "pusht_training.csv")
+    pusht_runtime = csv_rows(RESULTS / "tables" / "pusht_runtime.csv")
+    pusht_rollouts = csv_rows(RESULTS / "tables" / "pusht_rollouts.csv")
+    pusht_agg = csv_rows(RESULTS / "tables" / "pusht_aggregate.csv")
     diff_doc = read_text(ROOT / "docs" / "differentiation_from_wam_jepa.md").lower()
     checklist_doc = read_text(ROOT / "docs" / "diffusion_policy_validity_checklist.md").lower()
     theory_doc = read_text(ROOT / "docs" / "theory.md").lower()
@@ -549,7 +562,24 @@ def main() -> None:
         RESULTS / "tables" / "learned_policy_lite_aggregate.csv",
         RESULTS / "tables" / "learned_policy_lite_seed_aggregate.csv",
         RESULTS / "tables" / "learned_policy_lite_effect_cis.csv",
+        RESULTS / "true_diffusion_summary.json",
+        RESULTS / "tables" / "true_diffusion_aggregate.csv",
+        RESULTS / "tables" / "true_diffusion_seed_aggregate.csv",
+        RESULTS / "tables" / "true_diffusion_effect_cis.csv",
+        RESULTS / "tables" / "true_diffusion_scorer_gap_cis.csv",
+        RESULTS / "tables" / "true_diffusion_runtime.csv",
+        RESULTS / "tables" / "true_diffusion_training.csv",
+        RESULTS / "pusht_summary.json",
+        RESULTS / "tables" / "pusht_aggregate.csv",
+        RESULTS / "tables" / "pusht_seed_aggregate.csv",
+        RESULTS / "tables" / "pusht_effect_cis.csv",
+        RESULTS / "tables" / "pusht_scorer_gap_cis.csv",
+        RESULTS / "tables" / "pusht_runtime.csv",
+        RESULTS / "tables" / "pusht_rollouts.csv",
         RESULTS / "figures" / "nk_budget_phase_diagram.png",
+        RESULTS / "figures" / "true_diffusion_survival.png",
+        RESULTS / "figures" / "true_diffusion_runtime.png",
+        RESULTS / "figures" / "pusht_best_of_n.png",
     ]
     table_min_rows = {
         "controlled_sampler_aggregate.csv": 42,
@@ -557,6 +587,10 @@ def main() -> None:
         "nk_budget_phase.csv": 30,
         "learned_policy_lite_aggregate.csv": 200,
         "learned_policy_lite_effect_cis.csv": 80,
+        "true_diffusion_aggregate.csv": 80 if is_smoke_results() else 200,
+        "true_diffusion_effect_cis.csv": 60 if is_smoke_results() else 150,
+        "pusht_aggregate.csv": 40 if is_smoke_results() else 90,
+        "pusht_effect_cis.csv": 30 if is_smoke_results() else 70,
     }
     table_rows_ok = all(
         csv_row_count(RESULTS / "tables" / name) >= minimum
@@ -570,6 +604,9 @@ def main() -> None:
             "nk_budget_phase_diagram.png",
             "learned_policy_lite_ood.png",
             "toy_image_observations.png",
+            "true_diffusion_survival.png",
+            "true_diffusion_runtime.png",
+            "pusht_best_of_n.png",
         ]
     )
     artifacts_weak = all(path.exists() and path.stat().st_size > 0 for path in required_artifacts)
@@ -696,6 +733,238 @@ def main() -> None:
         "Learned experiment satisfies the Diffusion Policy-style validity checklist and includes multi-seed state/image ID/OOD evaluation.",
         status(learned_strong, learned_weak),
         strong_metrics["learned_policy_lite"],
+    )
+
+    min_true_units = 1 if is_smoke_results() else 2
+    true_checklist = true_diffusion.get("diffusion_policy_validity_checklist") or {}
+    true_samplers = set(true_diffusion.get("sampler_families") or [])
+    true_scorers = set(true_diffusion.get("scorers") or [])
+    true_k_values = [int(v) for v in true_diffusion.get("k_values") or []]
+    true_key_k = max(true_k_values) if true_k_values else 0
+    true_ddim_oracle_ci = first_row(
+        true_effect_cis,
+        sampler="ddim_eps",
+        regime="id",
+        scorer="oracle_real_utility_selector",
+        K=true_key_k,
+        metric="exact_selected_real",
+    )
+    true_ddpm_oracle_ci = first_row(
+        true_effect_cis,
+        sampler="ddpm_eps",
+        regime="id",
+        scorer="oracle_real_utility_selector",
+        K=true_key_k,
+        metric="exact_selected_real",
+    )
+    true_anti_ci = first_row(
+        true_effect_cis,
+        sampler="ddim_eps",
+        regime="id",
+        scorer="anti_correlated_score",
+        K=true_key_k,
+        metric="exact_selected_real",
+    )
+    true_tail_ci = first_row(
+        true_effect_cis,
+        sampler="ddim_eps",
+        regime="hidden_obstacle",
+        scorer="tail_only_misaligned_score",
+        K=true_key_k,
+        metric="exact_selected_real",
+    )
+    true_gap_ci = first_row(
+        true_gap_cis,
+        sampler="ddim_eps",
+        regime="hidden_obstacle",
+        effect="oracle_real_utility_selector_minus_tail_only_misaligned_score",
+        K=true_key_k,
+    )
+    true_weak = (
+        all(true_checklist.get(key) is True for key in ["true_epsilon_prediction", "ddim_fast_sampling", "stochastic_ddpm_sampling"])
+        and {"ddim_eps", "ddpm_eps", "consistency_1step", "clean_target_ablation"}.issubset(true_samplers)
+        and {"diffusion_internal_score", "oracle_real_utility_selector", "anti_correlated_score", "tail_only_misaligned_score"}.issubset(true_scorers)
+        and len(true_training) >= min_true_units
+        and len(true_runtime) > 0
+    )
+    true_strong = (
+        true_weak
+        and f(true_diffusion, "ddim_oracle_gain_high_minus_low") >= 0.01
+        and f(true_diffusion, "ddpm_oracle_gain_high_minus_low") >= 0.0
+        and f(true_diffusion, "anti_correlated_real_change_high_minus_low") <= -0.01
+        and len(true_agg) >= (80 if is_smoke_results() else 200)
+        and csv_row_count(RESULTS / "tables" / "true_diffusion_curves.csv") >= (300 if is_smoke_results() else 1200)
+        and ci_ok(true_ddim_oracle_ci, mean_min=0.01, min_n=min_true_units)
+        and ci_ok(true_ddpm_oracle_ci, mean_min=0.0, min_n=min_true_units)
+        and ci_ok(true_anti_ci, mean_max=-0.01, min_n=min_true_units)
+        and bool(true_tail_ci)
+        and bool(true_gap_ci)
+        and bool(true_diffusion.get("measured_wall_clock_runtime"))
+    )
+    strong_metrics["true_action_diffusion"] = {
+        "checklist": true_checklist,
+        "sampler_families": sorted(true_samplers),
+        "scorers": sorted(true_scorers),
+        "num_training_rows": len(true_training),
+        "num_runtime_rows": len(true_runtime),
+        "aggregate_rows": len(true_agg),
+        "curve_rows": csv_row_count(RESULTS / "tables" / "true_diffusion_curves.csv"),
+        "ddim_oracle_gain": true_diffusion.get("ddim_oracle_gain_high_minus_low"),
+        "ddpm_oracle_gain": true_diffusion.get("ddpm_oracle_gain_high_minus_low"),
+        "anti_correlated_change": true_diffusion.get("anti_correlated_real_change_high_minus_low"),
+        "hidden_tail_change": true_diffusion.get("hidden_tail_misaligned_real_change_high_minus_low"),
+        "ddim_oracle_ci": true_ddim_oracle_ci,
+        "ddpm_oracle_ci": true_ddpm_oracle_ci,
+        "anti_correlated_ci": true_anti_ci,
+        "tail_misaligned_ci": true_tail_ci,
+        "oracle_tail_gap_ci": true_gap_ci,
+        "thresholds": {
+            "ddim_oracle_gain_min": 0.01,
+            "ddpm_oracle_gain_min": 0.0,
+            "anti_correlated_change_max": -0.01,
+            "min_ci_units": min_true_units,
+        },
+    }
+    add(
+        claims,
+        "true_action_diffusion",
+        "Best-of-N effects survive a true epsilon-prediction DDPM/DDIM action diffusion policy, with one-step and clean-target ablations.",
+        status(true_strong, true_weak),
+        strong_metrics["true_action_diffusion"],
+    )
+
+    min_pusht_units = 1 if is_smoke_results() else 2
+    pusht_checklist = pusht.get("diffusion_policy_validity_checklist") or {}
+    pusht_samplers = set(pusht.get("sampler_families") or [])
+    pusht_scorers = set(pusht.get("scorers") or [])
+    pusht_k_values = [int(v) for v in pusht.get("k_values") or []]
+    pusht_key_k = max(pusht_k_values) if pusht_k_values else 0
+    pusht_aligned_ci = first_row(
+        pusht_effect_cis,
+        sampler="ddim_eps",
+        regime="pusht_aligned",
+        scorer="oracle_real_utility_selector",
+        K=pusht_key_k,
+        metric="exact_selected_real",
+    )
+    pusht_low_div_ci = first_row(
+        pusht_effect_cis,
+        sampler="ddim_eps",
+        regime="pusht_low_diversity",
+        scorer="oracle_real_utility_selector",
+        K=pusht_key_k,
+        metric="exact_selected_real",
+    )
+    pusht_misaligned_ci = first_row(
+        pusht_effect_cis,
+        sampler="ddim_eps",
+        regime="pusht_high_temp_misaligned",
+        scorer="misaligned_corner_scorer",
+        K=pusht_key_k,
+        metric="exact_selected_real",
+    )
+    pusht_gap_ci = first_row(
+        pusht_gap_cis,
+        sampler="ddim_eps",
+        regime="pusht_high_temp_misaligned",
+        effect="oracle_real_utility_selector_minus_misaligned_corner_scorer",
+        K=pusht_key_k,
+    )
+    pusht_weak = (
+        pusht.get("benchmark") == "PushT"
+        and pusht.get("env_id") == "gym_pusht/PushT-v0"
+        and bool(pusht.get("actual_simulator_rollouts"))
+        and all(pusht_checklist.get(key) is True for key in ["true_epsilon_prediction", "actual_environment_rollout_utility", "trajectory_reranking_over_sampled_actions"])
+        and {"ddim_eps", "ddpm_eps", "consistency_1step"}.issubset(pusht_samplers)
+        and {"oracle_real_utility_selector", "learned_value_critic_from_pilot_rollouts", "misaligned_corner_scorer"}.issubset(pusht_scorers)
+        and len(pusht_training) >= min_pusht_units
+        and len(pusht_runtime) > 0
+        and len(pusht_rollouts) > 0
+    )
+    pusht_strong = (
+        pusht_weak
+        and f(pusht, "pusht_aligned_oracle_gain_high_minus_low") >= 0.002
+        and f(pusht, "pusht_oracle_minus_misaligned_high_n") >= 0.0
+        and len(pusht_agg) >= (40 if is_smoke_results() else 90)
+        and csv_row_count(RESULTS / "tables" / "pusht_curves.csv") >= (120 if is_smoke_results() else 300)
+        and int(f(pusht, "rollout_rows", 0.0)) >= (16 if is_smoke_results() else 48)
+        and ci_ok(pusht_aligned_ci, mean_min=0.0, min_n=min_pusht_units)
+        and bool(pusht_low_div_ci)
+        and bool(pusht_misaligned_ci)
+        and bool(pusht_gap_ci)
+        and bool(pusht.get("measured_wall_clock_runtime"))
+    )
+    strong_metrics["pusht_benchmark"] = {
+        "checklist": pusht_checklist,
+        "sampler_families": sorted(pusht_samplers),
+        "scorers": sorted(pusht_scorers),
+        "num_training_rows": len(pusht_training),
+        "num_runtime_rows": len(pusht_runtime),
+        "num_rollout_rows": len(pusht_rollouts),
+        "aggregate_rows": len(pusht_agg),
+        "curve_rows": csv_row_count(RESULTS / "tables" / "pusht_curves.csv"),
+        "aligned_oracle_gain": pusht.get("pusht_aligned_oracle_gain_high_minus_low"),
+        "low_diversity_oracle_gain": pusht.get("pusht_low_diversity_oracle_gain_high_minus_low"),
+        "misaligned_real_change": pusht.get("pusht_misaligned_real_change_high_minus_low"),
+        "oracle_minus_misaligned": pusht.get("pusht_oracle_minus_misaligned_high_n"),
+        "aligned_oracle_ci": pusht_aligned_ci,
+        "low_diversity_ci": pusht_low_div_ci,
+        "misaligned_ci": pusht_misaligned_ci,
+        "oracle_gap_ci": pusht_gap_ci,
+        "thresholds": {
+            "aligned_oracle_gain_min": 0.002,
+            "oracle_minus_misaligned_min": 0.0,
+            "min_ci_units": min_pusht_units,
+        },
+    }
+    add(
+        claims,
+        "pusht_benchmark",
+        "A credible PushT simulator benchmark shows the same reranking law over actual sampled action trajectories.",
+        status(pusht_strong, pusht_weak),
+        strong_metrics["pusht_benchmark"],
+    )
+
+    runtime_tier_strong = (
+        latency_strong
+        and len(true_runtime) > 0
+        and len(pusht_runtime) > 0
+        and bool(true_diffusion.get("measured_wall_clock_runtime"))
+        and bool(pusht.get("measured_wall_clock_runtime"))
+        and {"runtime_per_candidate_ms", "K", "sampler"}.issubset(csv_columns(RESULTS / "tables" / "true_diffusion_runtime.csv"))
+        and {"runtime_per_candidate_ms", "K", "sampler"}.issubset(csv_columns(RESULTS / "tables" / "pusht_runtime.csv"))
+    )
+    strong_metrics["measured_runtime_allocation"] = {
+        "nk_latency_supported": latency_strong,
+        "true_runtime_rows": len(true_runtime),
+        "pusht_runtime_rows": len(pusht_runtime),
+        "true_runtime_columns": sorted(csv_columns(RESULTS / "tables" / "true_diffusion_runtime.csv")),
+        "pusht_runtime_columns": sorted(csv_columns(RESULTS / "tables" / "pusht_runtime.csv")),
+    }
+    add(
+        claims,
+        "latency",
+        "N versus K recommendations are backed by both abstract budget sweeps and measured sampler/benchmark runtime.",
+        status(runtime_tier_strong, len(true_runtime) > 0 and len(pusht_runtime) > 0),
+        strong_metrics["measured_runtime_allocation"],
+    )
+
+    tiered_global_strong = aligned_strong and learned_strong and true_strong and pusht_strong
+    strong_metrics["tiered_global_claim_gate"] = {
+        "controlled_sampler_supported": aligned_strong,
+        "learned_policy_lite_supported": learned_strong,
+        "true_action_diffusion_supported": true_strong,
+        "pusht_benchmark_supported": pusht_strong,
+        "toy_only_explanation_blocked": true_strong and pusht_strong,
+        "survives_true_ddpm": true_strong,
+        "survives_real_benchmark_path": pusht_strong,
+    }
+    add(
+        claims,
+        "tiered_claim_gate",
+        "Global diffusion-policy wording is promoted only when controlled, learned, true-DDPM, and PushT benchmark tiers are all supported.",
+        status(tiered_global_strong),
+        strong_metrics["tiered_global_claim_gate"],
     )
 
     overclaims = forbidden_hits()

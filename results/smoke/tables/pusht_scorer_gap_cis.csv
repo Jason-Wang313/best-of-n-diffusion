@@ -1,0 +1,3 @@
+n,mean,se,ci_low,ci_high,confidence,effect,sampler,regime,K,N
+1,0.16884400890971873,0.0,0.16884400890971873,0.16884400890971873,0.95,oracle_real_utility_selector_minus_misaligned_corner_scorer,ddim_eps,pusht_high_temp_misaligned,8,8
+1,0.16780068003468712,0.0,0.16780068003468712,0.16780068003468712,0.95,learned_value_critic_from_pilot_rollouts_minus_misaligned_corner_scorer,ddim_eps,pusht_high_temp_misaligned,8,8

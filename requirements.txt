@@ -3,3 +3,5 @@ pandas>=1.5
 matplotlib>=3.7
 torch>=2.0
 pytest>=8
+gym-pusht>=0.1.6
+pymunk>=6.6,<7

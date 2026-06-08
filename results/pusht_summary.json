@@ -1,0 +1,65 @@
+{
+  "actual_simulator_rollouts": true,
+  "artifact_tables": {
+    "aggregate": "results/tables/pusht_aggregate.csv",
+    "curves": "results/tables/pusht_curves.csv",
+    "diversity": "results/tables/pusht_diversity.csv",
+    "effect_cis": "results/tables/pusht_effect_cis.csv",
+    "rollouts": "results/tables/pusht_rollouts.csv",
+    "runtime": "results/tables/pusht_runtime.csv",
+    "scorer_gap_cis": "results/tables/pusht_scorer_gap_cis.csv",
+    "seed_aggregate": "results/tables/pusht_seed_aggregate.csv",
+    "training": "results/tables/pusht_training.csv"
+  },
+  "benchmark": "PushT",
+  "diffusion_policy_validity_checklist": {
+    "actual_environment_rollout_utility": true,
+    "ddim_fast_sampling": true,
+    "stochastic_ddpm_sampling": true,
+    "trajectory_reranking_over_sampled_actions": true,
+    "true_epsilon_prediction": true
+  },
+  "env_id": "gym_pusht/PushT-v0",
+  "heuristic_demonstrations_for_training": true,
+  "k_values": [
+    1,
+    8
+  ],
+  "loss_decreased_all_seeds": true,
+  "max_loss_ratio": 0.9983314500745804,
+  "mean_candidate_rollout_coverage": 0.10417861005167811,
+  "measured_wall_clock_runtime": true,
+  "n_values": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "num_training_seeds": 2,
+  "pusht_aligned_oracle_gain_high_minus_low": 0.11190572278727631,
+  "pusht_low_diversity_oracle_gain_high_minus_low": 0.0004010017892459567,
+  "pusht_misaligned_real_change_high_minus_low": -0.06773315160773394,
+  "pusht_oracle_minus_misaligned_high_n": 0.20518732128040137,
+  "pusht_value_minus_misaligned_high_n": 0.1635040514283313,
+  "regimes": [
+    "pusht_aligned",
+    "pusht_high_temp_misaligned",
+    "pusht_low_diversity"
+  ],
+  "rollout_rows": 288,
+  "runtime_rows": 24,
+  "sampler_families": [
+    "consistency_1step",
+    "ddim_eps",
+    "ddpm_eps"
+  ],
+  "scorers": [
+    "behavior_cloning_critic",
+    "diffusion_internal_score",
+    "learned_value_critic_from_pilot_rollouts",
+    "misaligned_corner_scorer",
+    "oracle_real_utility_selector",
+    "random_sample_selection",
+    "uncertainty_aware_critic"
+  ]
+}

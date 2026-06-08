@@ -1,0 +1,75 @@
+{
+  "anti_correlated_real_change_high_minus_low": -0.38632039307627686,
+  "artifact_tables": {
+    "aggregate": "results/tables/true_diffusion_aggregate.csv",
+    "curves": "results/tables/true_diffusion_curves.csv",
+    "diversity": "results/tables/true_diffusion_diversity.csv",
+    "effect_cis": "results/tables/true_diffusion_effect_cis.csv",
+    "runtime": "results/tables/true_diffusion_runtime.csv",
+    "scorer_gap_cis": "results/tables/true_diffusion_scorer_gap_cis.csv",
+    "seed_aggregate": "results/tables/true_diffusion_seed_aggregate.csv",
+    "training": "results/tables/true_diffusion_training.csv"
+  },
+  "ddim_oracle_gain_high_minus_low": 0.47896010524195254,
+  "ddpm_oracle_gain_high_minus_low": 0.47044232785007156,
+  "diffusion_policy_validity_checklist": {
+    "action_sequence_generation": true,
+    "clean_target_ablation_kept": true,
+    "ddim_fast_sampling": true,
+    "one_step_consistency_variant": true,
+    "same_total_compute_budget_grid": true,
+    "stochastic_ddpm_sampling": true,
+    "true_epsilon_prediction": true
+  },
+  "epsilon_ddpm_max_loss_ratio": 0.9884174110910473,
+  "fastest_sampler_k": {
+    "K": 1.0,
+    "runtime_per_candidate_ms": 0.41689999996682064,
+    "sampler": "clean_target_ablation"
+  },
+  "hidden_tail_misaligned_real_change_high_minus_low": -0.006895589255349055,
+  "k_values": [
+    1,
+    8
+  ],
+  "loss_decreased_all_epsilon_seeds": true,
+  "low_diversity_oracle_gain_high_minus_low": 0.029019589719940342,
+  "measured_wall_clock_runtime": true,
+  "n_values": [
+    1,
+    2,
+    4,
+    8,
+    16
+  ],
+  "num_training_seeds": 1,
+  "regimes": [
+    "hidden_obstacle",
+    "id",
+    "low_diversity"
+  ],
+  "runtime_rows": 18,
+  "sampler_families": [
+    "clean_target_ablation",
+    "consistency_1step",
+    "ddim_eps",
+    "ddpm_eps"
+  ],
+  "scorers": [
+    "anti_correlated_score",
+    "behavior_cloning_critic",
+    "calibrated_critic",
+    "diffusion_internal_score",
+    "diffusion_likelihood_proxy",
+    "learned_value_critic_from_pilot_rollouts",
+    "oracle_real_utility_selector",
+    "random_sample_selection",
+    "tail_only_misaligned_score",
+    "weakly_aligned_score"
+  ],
+  "slowest_sampler_k": {
+    "K": 8.0,
+    "runtime_per_candidate_ms": 1.177110416620053,
+    "sampler": "ddpm_eps"
+  }
+}

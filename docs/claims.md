@@ -15,7 +15,11 @@ Claims are promotable only when supported by `results/claims_status.json` and co
 9. The project is not a JEPA clone.
 10. Major promoted claims are backed by CSV/JSON artifacts.
 11. The learned Diffusion Policy-lite experiment includes state-conditioned and 32x32 image-conditioned variants with seed-level summaries, visual OOD regimes, confidence intervals, and receding-horizon evaluation.
+12. A true epsilon-prediction action DDPM/DDIM policy reproduces the Best-of-N law with stochastic DDPM-style sampling, one-step consistency-style sampling, and the older clean-target denoiser held as an ablation.
+13. A PushT simulator benchmark path reranks actual sampled action trajectories using real environment rollout utility and shows aligned gains, low-diversity saturation, and misaligned-scorer failure/gap behavior.
+14. Runtime recommendations are backed by both abstract `N x K` budget sweeps and measured wall-clock runtime for true diffusion and PushT sampling/rollouts.
+15. Global diffusion-policy wording is promoted only when controlled, learned-lite, true-DDPM, and PushT tiers all pass.
 
 ## Non-Claims
 
-This repository does not claim real-robot validation, universal Diffusion Policy improvement, production-scale visual policy quality, or a production deployment rule. The calibration map is evidence for "repairs at least one regime," not evidence that calibration always repairs high-`N` selection. The deployment gate is a conservative diagnostic for synthetic and toy learned experiments.
+This repository does not claim real-robot validation, universal Diffusion Policy improvement, production-scale visual policy quality, or a production deployment rule. The PushT path is simulator evidence trained from heuristic demonstrations, not a full visual Diffusion Policy benchmark suite. The calibration map is evidence for "repairs at least one regime," not evidence that calibration always repairs high-`N` selection.

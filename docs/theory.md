@@ -24,3 +24,12 @@ For diffusion action generation, the relevant mechanisms are:
 - latency-adjusted utility `E[U(o, tau*) - lambda C(N, K)]`.
 
 The central failure mode is diffusion tail over-selection: a misaligned scorer can make the selected score improve with `N` while selected real utility saturates or decreases.
+
+## Diffusion-Specific Corollaries
+
+- Expected selected real utility depends on upper-tail score-utility alignment, not only average score-utility correlation.
+- Low sample diversity bounds the marginal value of increasing `N`; exact collapse makes extra samples nearly redundant.
+- A misaligned high-score tail can make selected real utility decrease with `N` even while selected score increases monotonically.
+- Under latency-adjusted utility, the optimum can occur at finite `N` or finite `K`, not at the largest tested budget.
+- Under a fixed budget `B = N x K`, the best allocation depends on marginal diversity gained from another candidate versus marginal quality gained from another denoising step.
+- Monotonic selected score is not evidence of monotonic real utility unless the upper score tail is calibrated to real task utility.

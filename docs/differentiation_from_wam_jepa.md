@@ -9,7 +9,7 @@ The reused mathematical object is the finite tie-aware Best-of-N law. For a fixe
 This repository instantiates that theorem for diffusion action trajectory inference:
 
 - stochastic action-sequence generation conditioned on observation/state;
-- iterative denoising or diffusion-like noise-to-action sampling;
+- iterative denoising, true epsilon-prediction DDPM/DDIM sampling, and one-step consistency-style ablation;
 - sample diversity, mode coverage, duplicate collapse, and marginal diversity gain;
 - denoising-step/sample-count tradeoffs through `B = N x K`;
 - scorer alignment in the high-score tail;
@@ -31,6 +31,8 @@ The repository must include:
 
 - controlled diffusion-like action sampler regimes for aligned, misaligned, collapsed, low-diversity, low-`K`, and high-`K` sampling;
 - learned Diffusion Policy-lite denoising model with state conditioning and horizon action sequences;
+- true action DDPM/DDIM artifact with clean-target denoiser held as an ablation;
+- one lightweight robotics simulator benchmark path with actual sampled-trajectory rollout utility;
 - scorer/reranker comparison showing that the value of `N` depends on score-utility alignment;
 - `N` versus `K` phase diagram with latency-adjusted real utility;
 - claim audit that checks the above artifacts.

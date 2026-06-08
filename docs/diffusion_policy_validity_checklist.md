@@ -18,6 +18,12 @@ If an experiment trains a learned denoising policy, label it:
 
 `learned Diffusion Policy-lite`
 
+If an experiment trains epsilon prediction with DDIM/DDPM-style sampling, label it:
+
+`true action DDPM/DDIM`
+
 The learned toy experiment in this repository includes state-conditioned and 32x32 image-conditioned variants. The image path uses a tiny CNN encoder over rendered block/goal/obstacle observations with visual OOD regimes, not a full visual robotics benchmark.
 
-The learned toy experiment is a small CPU-feasible model, not evidence that full-scale robot Diffusion Policies benefit universally from high `N`.
+The PushT experiment is a simulator benchmark path with actual rollout utility over sampled action trajectories. It is not real-robot validation and not a full visual Diffusion Policy benchmark.
+
+The learned and benchmark experiments are CPU-feasible models, not evidence that full-scale robot Diffusion Policies benefit universally from high `N`.

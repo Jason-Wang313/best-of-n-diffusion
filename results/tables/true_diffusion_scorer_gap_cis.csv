@@ -1,0 +1,3 @@
+n,mean,se,ci_low,ci_high,confidence,effect,sampler,regime,K,N
+2,0.1191570324030567,0.11600193895617134,0.0031550934468853598,0.23515897135922803,0.95,oracle_real_utility_selector_minus_tail_only_misaligned_score,ddim_eps,hidden_obstacle,16,16
+2,0.09699622832724963,0.09384116897964034,0.0031550593476092903,0.19083739730688998,0.95,calibrated_critic_minus_tail_only_misaligned_score,ddim_eps,hidden_obstacle,16,16

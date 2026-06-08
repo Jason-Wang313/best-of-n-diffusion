@@ -1,0 +1,3 @@
+seed,model,initial_loss,final_loss,loss_ratio,epochs,diffusion_steps,target
+1,epsilon_ddpm,0.9174336194992065,0.9068073630332947,0.9884174110910473,6,16,epsilon
+1,clean_target_ablation,0.02997715026140213,0.009193441830575466,0.30668164753514693,6,0,clean_action
