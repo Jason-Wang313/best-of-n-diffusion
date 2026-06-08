@@ -33,10 +33,16 @@ from diffusion_best_of_n.evaluation import curve_rows, evaluate_pool
 from diffusion_best_of_n.io import results_dir, write_json
 from diffusion_best_of_n.scorers import apply_linear_critic, fit_linear_value_critic, random_scores
 from diffusion_best_of_n.stats import bootstrap_mean_ci, mean_ci_columns, paired_high_minus_low_ci
+from diffusion_best_of_n.theory import utility_best_of_n_finite
 
 
 N_VALUES = [1, 2, 4, 8, 16, 32]
 DEFAULT_K_VALUES = [1, 4, 8, 16]
+ROLLOUT_METRIC_VALUE_COLS = [
+    "exact_selected_max_coverage",
+    "exact_selected_final_coverage",
+    "exact_selected_success",
+]
 REGIMES = {
     "pusht_aligned": {"temperature": 0.95, "seed_offset": 31_000},
     "pusht_low_diversity": {"temperature": 0.10, "seed_offset": 32_000},
@@ -77,13 +83,28 @@ def pusht_scores(policy, raw_obs: np.ndarray, trajectories: np.ndarray, utilitie
     }
 
 
-def effect_ci_table(curves: pd.DataFrame, n_values: list[int]) -> pd.DataFrame:
+def selected_rollout_metric_curves(scores: np.ndarray, rollouts: list, n_values: list[int]) -> dict[str, dict[int, float]]:
+    """Compute exact Best-of-N selected rollout metrics for the score-ranked pool."""
+
+    metric_arrays = {
+        "exact_selected_max_coverage": np.asarray([item.max_coverage for item in rollouts], dtype=float),
+        "exact_selected_final_coverage": np.asarray([item.final_coverage for item in rollouts], dtype=float),
+        "exact_selected_success": np.asarray([float(item.success) for item in rollouts], dtype=float),
+    }
+    return {
+        name: utility_best_of_n_finite(scores, values, n_values)
+        for name, values in metric_arrays.items()
+    }
+
+
+def effect_ci_table(curves: pd.DataFrame, n_values: list[int], value_cols: list[str] | None = None) -> pd.DataFrame:
     rows: list[dict] = []
     low_n = min(n_values)
     high_n = max(n_values)
+    value_cols = value_cols or ["exact_selected_real", "exact_selected_score", "high_n_regret"]
     for group_key, group in curves.groupby(["sampler", "regime", "scorer", "K"]):
         sampler, regime, scorer, k = group_key
-        for value_col in ["exact_selected_real", "exact_selected_score", "high_n_regret"]:
+        for value_col in value_cols:
             rows.append(
                 {
                     "sampler": sampler,
@@ -295,27 +316,31 @@ def main() -> None:
                                 mc_trials=args.mc_trials,
                                 seed=sample_seed + len(scorer),
                             )
-                            rows.extend(
-                                curve_rows(
-                                    family="E_pusht_benchmark",
-                                    regime=regime,
-                                    scorer=scorer,
-                                    seed=seed,
-                                    eval_payload=payload,
-                                    extra={
-                                        "episode_idx": episode_idx,
-                                        "env_seed": env_seed,
-                                        "sampler": sampler,
-                                        "K": sampler_k,
-                                        "temperature": cfg["temperature"],
-                                        "sample_runtime_seconds": sample_runtime,
-                                        "rollout_runtime_seconds": rollout_runtime,
-                                        "runtime_per_candidate_ms": (sample_runtime + rollout_runtime) * 1000.0 / max(args.candidates, 1),
-                                        **div,
-                                        "new_modes_at_high_n": new_modes[max(n_values)],
-                                    },
-                                )
+                            rollout_curves = selected_rollout_metric_curves(scores, rollouts, n_values)
+                            curve_payload = curve_rows(
+                                family="E_pusht_benchmark",
+                                regime=regime,
+                                scorer=scorer,
+                                seed=seed,
+                                eval_payload=payload,
+                                extra={
+                                    "episode_idx": episode_idx,
+                                    "env_seed": env_seed,
+                                    "sampler": sampler,
+                                    "K": sampler_k,
+                                    "temperature": cfg["temperature"],
+                                    "sample_runtime_seconds": sample_runtime,
+                                    "rollout_runtime_seconds": rollout_runtime,
+                                    "runtime_per_candidate_ms": (sample_runtime + rollout_runtime) * 1000.0 / max(args.candidates, 1),
+                                    **div,
+                                    "new_modes_at_high_n": new_modes[max(n_values)],
+                                },
                             )
+                            for row in curve_payload:
+                                n = int(row["N"])
+                                for metric_col, metric_curve in rollout_curves.items():
+                                    row[metric_col] = float(metric_curve[n])
+                            rows.extend(curve_payload)
 
     curves = pd.DataFrame(rows)
     diversity = pd.DataFrame(diversity_rows)
@@ -342,6 +367,7 @@ def main() -> None:
         "trajectory_cluster_count",
         "trajectory_cluster_entropy",
         "new_modes_at_high_n",
+        *ROLLOUT_METRIC_VALUE_COLS,
     ]
     seed_agg = curves.groupby(["seed", "sampler", "regime", "scorer", "N", "K"], as_index=False)[numeric].mean()
     agg = mean_ci_columns(
@@ -350,7 +376,21 @@ def main() -> None:
         numeric_cols=numeric,
         seed=7100,
     )
-    effect_cis = effect_ci_table(curves, n_values)
+    effect_cis = effect_ci_table(
+        curves,
+        n_values,
+        ["exact_selected_real", "exact_selected_score", "high_n_regret", *ROLLOUT_METRIC_VALUE_COLS],
+    )
+    rollout_metric_seed_agg = seed_agg[
+        ["seed", "sampler", "regime", "scorer", "N", "K", "exact_selected_real", *ROLLOUT_METRIC_VALUE_COLS]
+    ].copy()
+    rollout_metric_agg = mean_ci_columns(
+        curves,
+        group_cols=["sampler", "regime", "scorer", "N", "K"],
+        numeric_cols=["exact_selected_real", *ROLLOUT_METRIC_VALUE_COLS],
+        seed=7150,
+    )
+    rollout_metric_effect_cis = effect_cis[effect_cis["metric"].isin(ROLLOUT_METRIC_VALUE_COLS)].copy()
     high_n = max(n_values)
     key_k = max(k_values)
     gap_df = pd.DataFrame(
@@ -387,6 +427,9 @@ def main() -> None:
     runtime.to_csv(out_dir / "tables" / "pusht_runtime.csv", index=False)
     rollouts.to_csv(out_dir / "tables" / "pusht_rollouts.csv", index=False)
     training.to_csv(out_dir / "tables" / "pusht_training.csv", index=False)
+    rollout_metric_seed_agg.to_csv(out_dir / "tables" / "pusht_rollout_metric_seed_aggregate.csv", index=False)
+    rollout_metric_agg.to_csv(out_dir / "tables" / "pusht_rollout_metric_aggregate.csv", index=False)
+    rollout_metric_effect_cis.to_csv(out_dir / "tables" / "pusht_rollout_metric_effect_cis.csv", index=False)
 
     def agg_value(sampler: str, regime: str, scorer: str, k: int, n: int, col: str) -> float:
         part = agg[
@@ -414,6 +457,15 @@ def main() -> None:
     value_gap = agg_value("ddim_eps", "pusht_high_temp_misaligned", "learned_value_critic_from_pilot_rollouts", key_k, high_n, "exact_selected_real") - agg_value(
         "ddim_eps", "pusht_high_temp_misaligned", "misaligned_corner_scorer", key_k, high_n, "exact_selected_real"
     )
+    aligned_max_coverage_gain = agg_value("ddim_eps", "pusht_aligned", "oracle_real_utility_selector", key_k, high_n, "exact_selected_max_coverage") - agg_value(
+        "ddim_eps", "pusht_aligned", "oracle_real_utility_selector", key_k, low_n, "exact_selected_max_coverage"
+    )
+    aligned_final_coverage_gain = agg_value("ddim_eps", "pusht_aligned", "oracle_real_utility_selector", key_k, high_n, "exact_selected_final_coverage") - agg_value(
+        "ddim_eps", "pusht_aligned", "oracle_real_utility_selector", key_k, low_n, "exact_selected_final_coverage"
+    )
+    aligned_success_gain = agg_value("ddim_eps", "pusht_aligned", "oracle_real_utility_selector", key_k, high_n, "exact_selected_success") - agg_value(
+        "ddim_eps", "pusht_aligned", "oracle_real_utility_selector", key_k, low_n, "exact_selected_success"
+    )
     summary = {
         "artifact_tables": {
             "curves": "results/tables/pusht_curves.csv",
@@ -425,10 +477,14 @@ def main() -> None:
             "runtime": "results/tables/pusht_runtime.csv",
             "rollouts": "results/tables/pusht_rollouts.csv",
             "training": "results/tables/pusht_training.csv",
+            "rollout_metric_seed_aggregate": "results/tables/pusht_rollout_metric_seed_aggregate.csv",
+            "rollout_metric_aggregate": "results/tables/pusht_rollout_metric_aggregate.csv",
+            "rollout_metric_effect_cis": "results/tables/pusht_rollout_metric_effect_cis.csv",
         },
         "benchmark": "PushT",
         "env_id": PUSHT_ENV_ID,
         "actual_simulator_rollouts": True,
+        "actual_rollout_metric_curves": True,
         "heuristic_demonstrations_for_training": True,
         "diffusion_policy_validity_checklist": {
             "true_epsilon_prediction": True,
@@ -450,26 +506,52 @@ def main() -> None:
         "pusht_misaligned_real_change_high_minus_low": float(misaligned_change),
         "pusht_oracle_minus_misaligned_high_n": float(oracle_gap),
         "pusht_value_minus_misaligned_high_n": float(value_gap),
+        "pusht_aligned_max_coverage_gain_high_minus_low": float(aligned_max_coverage_gain),
+        "pusht_aligned_final_coverage_gain_high_minus_low": float(aligned_final_coverage_gain),
+        "pusht_aligned_success_gain_high_minus_low": float(aligned_success_gain),
+        "rollout_metric_columns": ROLLOUT_METRIC_VALUE_COLS,
+        "rollout_metric_effect_rows": int(len(rollout_metric_effect_cis)),
+        "rollout_metric_seed_rows": int(len(rollout_metric_seed_agg)),
         "runtime_rows": int(len(runtime)),
         "rollout_rows": int(len(rollouts)),
         "mean_candidate_rollout_coverage": float(rollouts["max_coverage"].mean()) if len(rollouts) else float("nan"),
+        "mean_candidate_rollout_success": float(rollouts["success"].astype(float).mean()) if len(rollouts) else float("nan"),
         "measured_wall_clock_runtime": True,
     }
     write_json(out_dir / "pusht_summary.json", summary)
 
-    subset = agg[
-        (agg["sampler"] == "ddim_eps")
-        & (agg["K"] == key_k)
-        & (agg["scorer"].isin(["oracle_real_utility_selector", "learned_value_critic_from_pilot_rollouts", "misaligned_corner_scorer"]))
+    plot_specs = [
+        ("pusht_aligned", "oracle_real_utility_selector", "aligned oracle"),
+        ("pusht_low_diversity", "oracle_real_utility_selector", "low-div oracle"),
+        ("pusht_high_temp_misaligned", "oracle_real_utility_selector", "hot oracle"),
+        ("pusht_high_temp_misaligned", "misaligned_corner_scorer", "hot misaligned"),
     ]
-    fig, ax = plt.subplots(figsize=(7.2, 4.6))
-    for (regime, scorer), part in subset.groupby(["regime", "scorer"]):
-        ax.plot(part["N"], part["exact_selected_real"], marker="o", label=f"{regime}:{scorer[:18]}")
-    ax.set_xscale("log", base=2)
-    ax.set_xlabel("N sampled trajectories")
-    ax.set_ylabel("PushT rollout utility")
-    ax.set_title("PushT benchmark: reranker alignment controls Best-of-N")
-    ax.legend(fontsize=5.5, ncol=2)
+    fig, axes = plt.subplots(1, 3, figsize=(11.2, 3.8), sharex=True)
+    metric_specs = [
+        ("exact_selected_real", "rollout utility"),
+        ("exact_selected_max_coverage", "max coverage"),
+        ("exact_selected_success", "success probability"),
+    ]
+    for ax, (metric_col, ylabel) in zip(axes, metric_specs, strict=True):
+        for regime, scorer, label in plot_specs:
+            part = agg[
+                (agg["sampler"] == "ddim_eps")
+                & (agg["K"] == key_k)
+                & (agg["regime"] == regime)
+                & (agg["scorer"] == scorer)
+            ].sort_values("N")
+            if len(part):
+                ax.plot(part["N"], part[metric_col], marker="o", linewidth=1.4, label=label)
+        ax.axvline(1, color="0.55", linestyle=":", linewidth=1.0)
+        ax.set_xscale("log", base=2)
+        ax.set_xlabel("N")
+        ax.set_ylabel(ylabel)
+        ax.grid(alpha=0.18, linewidth=0.6)
+    axes[0].set_title("utility")
+    axes[1].set_title("coverage")
+    axes[2].set_title("success")
+    axes[0].legend(fontsize=6.4, ncol=1)
+    fig.suptitle("PushT benchmark: selected rollout outcomes versus sample count", fontsize=11)
     fig.tight_layout()
     fig.savefig(out_dir / "figures" / "pusht_best_of_n.png", dpi=160)
     plt.close(fig)

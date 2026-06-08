@@ -1,4 +1,7 @@
 {
+  "ablation_samplers": [
+    "clean_target_ablation"
+  ],
   "anti_correlated_real_change_high_minus_low": -0.38632039307627686,
   "artifact_tables": {
     "aggregate": "results/tables/true_diffusion_aggregate.csv",
@@ -6,6 +9,7 @@
     "diversity": "results/tables/true_diffusion_diversity.csv",
     "effect_cis": "results/tables/true_diffusion_effect_cis.csv",
     "runtime": "results/tables/true_diffusion_runtime.csv",
+    "sampler_comparison": "results/tables/true_diffusion_sampler_comparison.csv",
     "scorer_gap_cis": "results/tables/true_diffusion_scorer_gap_cis.csv",
     "seed_aggregate": "results/tables/true_diffusion_seed_aggregate.csv",
     "training": "results/tables/true_diffusion_training.csv"
@@ -24,7 +28,7 @@
   "epsilon_ddpm_max_loss_ratio": 0.9884174110910473,
   "fastest_sampler_k": {
     "K": 1.0,
-    "runtime_per_candidate_ms": 0.4190687499582661,
+    "runtime_per_candidate_ms": 0.4370500000732136,
     "sampler": "clean_target_ablation"
   },
   "hidden_tail_misaligned_real_change_high_minus_low": -0.006895589255349055,
@@ -43,12 +47,18 @@
     16
   ],
   "num_training_seeds": 1,
+  "primary_samplers": [
+    "ddim_eps",
+    "ddpm_eps",
+    "consistency_1step"
+  ],
   "regimes": [
     "hidden_obstacle",
     "id",
     "low_diversity"
   ],
   "runtime_rows": 18,
+  "sampler_comparison_rows": 6,
   "sampler_families": [
     "clean_target_ablation",
     "consistency_1step",
@@ -69,7 +79,7 @@
   ],
   "slowest_sampler_k": {
     "K": 8.0,
-    "runtime_per_candidate_ms": 2.070275000013074,
-    "sampler": "ddim_eps"
+    "runtime_per_candidate_ms": 2.5179708333477415,
+    "sampler": "clean_target_ablation"
   }
 }

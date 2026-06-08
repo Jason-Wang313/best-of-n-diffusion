@@ -13,9 +13,9 @@ Required regimes:
 - noisy low-`K` sampler;
 - expensive high-`K` sampler.
 
-## Family B: Learned Diffusion Policy-Lite
+## Family B: Supporting Learned Diffusion Policy-Lite
 
-A small MLP denoiser learns to map noisy action trajectories plus state observations to clean expert action sequences. A second CPU-light variant renders 32x32 toy observations of the block, goal, obstacle, and distractors, then conditions the same denoising head on a tiny CNN embedding. The full run trains three learned seeds and writes seed-level aggregates, confidence intervals, ID/OOD curves, and receding-horizon execution.
+A small MLP denoiser learns to map noisy action trajectories plus state observations to clean expert action sequences. A second CPU-light variant renders 32x32 toy observations of the block, goal, obstacle, and distractors, then conditions the same denoising head on a tiny CNN embedding. The full run trains three learned seeds and writes seed-level aggregates, confidence intervals, ID/OOD curves, and receding-horizon execution. These results support the diagnostic pipeline but are not the central evidence for full diffusion-policy wording.
 
 Visual OOD regimes:
 
@@ -34,8 +34,8 @@ A phase diagram sweeps `N` and `K` and reports real utility, total budget `B = N
 
 ## Family E: True Action DDPM/DDIM
 
-An epsilon-prediction action diffusion model trains on multimodal action trajectories. Evaluation compares DDIM fast sampling, stochastic DDPM-style sampling, one-step consistency-style sampling, and the clean-target denoiser ablation under shared `N` and `K` grids. Scorers include diffusion-internal residual score, behavior cloning, pilot value critic, calibrated critic, weakly aligned score, anti-correlated score, tail-only misaligned score, and oracle real utility.
+An epsilon-prediction action diffusion model trains on multimodal action trajectories. Evaluation compares DDIM fast sampling, stochastic DDPM-style sampling, one-step consistency-style sampling, and the clean-target denoiser ablation under shared `N` and `K` grids. Scorers include diffusion-internal residual score, behavior cloning, pilot value critic, calibrated critic, weakly aligned score, anti-correlated score, tail-only misaligned score, and oracle real utility. The full run uses four seeds and three evaluation states so key true-DDPM CI rows have at least 12 paired units.
 
 ## Family F: PushT Simulator Benchmark
 
-The PushT path uses `gym_pusht/PushT-v0` with actual simulator rollout utility for sampled action trajectories. Training demonstrations are heuristic and CPU-friendly; the claim is benchmark-path evidence for the reranking law, not full-scale visual Diffusion Policy validation. Regimes include aligned sampling, low-diversity sampling, and high-temperature misaligned-score failure.
+The PushT path uses `gym_pusht/PushT-v0` with actual simulator rollout utility for sampled action trajectories. Training demonstrations are heuristic and CPU-friendly; the claim is benchmark-path evidence for the reranking law, not full-scale visual Diffusion Policy validation. Regimes include aligned sampling, low-diversity sampling, and high-temperature misaligned-score failure. The full run uses four seeds, three evaluation episodes, horizon 20, 16 candidates, and `K = 1, 8, 16`, then reports selected utility, max coverage, final coverage, success, seed-level summaries, and runtime.

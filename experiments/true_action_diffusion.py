@@ -398,6 +398,22 @@ def main() -> None:
         ),
     ]
     gap_df = pd.DataFrame(gap_rows)
+    runtime_summary = runtime.groupby(["sampler", "K"], as_index=False).agg(
+        runtime_per_candidate_ms=("runtime_per_candidate_ms", "mean"),
+        runtime_rows=("runtime_per_candidate_ms", "size"),
+        mean_pairwise_distance=("mean_pairwise_distance", "mean"),
+        effective_sample_diversity=("effective_sample_diversity", "mean"),
+    )
+    sampler_comparison = effect_cis[
+        (effect_cis["regime"] == "id")
+        & (effect_cis["scorer"] == "oracle_real_utility_selector")
+        & (effect_cis["metric"] == "exact_selected_real")
+    ].merge(runtime_summary, on=["sampler", "K"], how="left")
+    sampler_comparison["sampler_role"] = np.where(
+        sampler_comparison["sampler"].eq("clean_target_ablation"),
+        "ablation",
+        "primary",
+    )
 
     curves.to_csv(out_dir / "tables" / "true_diffusion_curves.csv", index=False)
     seed_agg.to_csv(out_dir / "tables" / "true_diffusion_seed_aggregate.csv", index=False)
@@ -407,6 +423,7 @@ def main() -> None:
     diversity.to_csv(out_dir / "tables" / "true_diffusion_diversity.csv", index=False)
     runtime.to_csv(out_dir / "tables" / "true_diffusion_runtime.csv", index=False)
     training.to_csv(out_dir / "tables" / "true_diffusion_training.csv", index=False)
+    sampler_comparison.to_csv(out_dir / "tables" / "true_diffusion_sampler_comparison.csv", index=False)
 
     def agg_value(sampler: str, regime: str, scorer: str, k: int, n: int, col: str) -> float:
         part = agg[
@@ -449,6 +466,7 @@ def main() -> None:
             "diversity": "results/tables/true_diffusion_diversity.csv",
             "runtime": "results/tables/true_diffusion_runtime.csv",
             "training": "results/tables/true_diffusion_training.csv",
+            "sampler_comparison": "results/tables/true_diffusion_sampler_comparison.csv",
         },
         "diffusion_policy_validity_checklist": {
             "true_epsilon_prediction": True,
@@ -459,6 +477,8 @@ def main() -> None:
             "action_sequence_generation": True,
             "same_total_compute_budget_grid": True,
         },
+        "primary_samplers": ["ddim_eps", "ddpm_eps", "consistency_1step"],
+        "ablation_samplers": ["clean_target_ablation"],
         "sampler_families": sorted(curves["sampler"].unique().tolist()),
         "scorers": sorted(curves["scorer"].unique().tolist()),
         "regimes": sorted(args.regimes),
@@ -478,6 +498,7 @@ def main() -> None:
         "hidden_tail_misaligned_real_change_high_minus_low": float(hidden_tail_change),
         "anti_correlated_real_change_high_minus_low": float(anti_change),
         "runtime_rows": int(len(runtime)),
+        "sampler_comparison_rows": int(len(sampler_comparison)),
         "fastest_sampler_k": {k: float(v) if isinstance(v, (int, float, np.integer, np.floating)) else v for k, v in fastest.items()},
         "slowest_sampler_k": {k: float(v) if isinstance(v, (int, float, np.integer, np.floating)) else v for k, v in slowest.items()},
         "measured_wall_clock_runtime": True,
@@ -515,6 +536,27 @@ def main() -> None:
     fig.colorbar(image, ax=ax, label="ms / trajectory")
     fig.tight_layout()
     fig.savefig(out_dir / "figures" / "true_diffusion_runtime.png", dpi=160)
+    plt.close(fig)
+
+    comp = sampler_comparison.sort_values(["sampler_role", "sampler", "K"]).copy()
+    labels = [f"{row.sampler}\nK={int(row.K)}" for row in comp.itertuples()]
+    colors = ["#3d6fb6" if role == "primary" else "#9a9a9a" for role in comp["sampler_role"]]
+    fig, axes = plt.subplots(1, 2, figsize=(10.4, 4.2))
+    x = np.arange(len(comp))
+    axes[0].bar(x, comp["mean"].to_numpy(dtype=float), color=colors)
+    axes[0].axhline(0.0, color="0.35", linewidth=0.8)
+    axes[0].set_ylabel("Best-of-N utility gain")
+    axes[0].set_title("oracle high-N effect")
+    axes[1].bar(x, comp["runtime_per_candidate_ms"].to_numpy(dtype=float), color=colors)
+    axes[1].set_ylabel("ms / trajectory")
+    axes[1].set_title("measured sampling runtime")
+    for ax in axes:
+        ax.set_xticks(x)
+        ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=7)
+        ax.grid(axis="y", alpha=0.18, linewidth=0.6)
+    fig.suptitle("True action diffusion sampler comparison", fontsize=11)
+    fig.tight_layout()
+    fig.savefig(out_dir / "figures" / "true_diffusion_sampler_comparison.png", dpi=160)
     plt.close(fig)
 
 

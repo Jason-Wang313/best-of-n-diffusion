@@ -52,6 +52,6 @@ fi
 "${PY[@]}" scripts/run_with_src.py experiments/scorer_comparison.py --seeds 1 2 --states 8 --candidates 96 --mc-trials 220
 "${PY[@]}" scripts/run_with_src.py experiments/nk_budget.py --seeds 1 2 --states 8 --max-candidates 64 --lambda-cost 0.0035
 "${PY[@]}" scripts/run_with_src.py experiments/learned_diffusion_policy_lite.py --seeds 1 2 3 --train-states 12 --train-candidates 8 --eval-states 3 --candidates 32 --epochs 20 --mc-trials 80
-"${PY[@]}" scripts/run_with_src.py experiments/true_action_diffusion.py --seeds 1 2 --train-states 8 --train-candidates 6 --eval-states 1 --candidates 24 --horizon 8 --epochs 10 --diffusion-steps 24 --mc-trials 30 --k-values 1 4 16 --regimes id low_diversity hidden_obstacle changed_friction action_noise
-"${PY[@]}" scripts/run_with_src.py experiments/pusht_benchmark.py --seeds 1 2 --train-states 5 --train-candidates 4 --eval-episodes 1 --candidates 12 --horizon 10 --epochs 5 --diffusion-steps 16 --mc-trials 10 --k-values 1 8 --regimes pusht_aligned pusht_low_diversity pusht_high_temp_misaligned
+"${PY[@]}" scripts/run_with_src.py experiments/true_action_diffusion.py --seeds 1 2 3 4 --train-states 10 --train-candidates 6 --eval-states 3 --candidates 24 --horizon 8 --epochs 12 --diffusion-steps 24 --mc-trials 30 --k-values 1 4 16 --regimes id low_diversity hidden_obstacle changed_friction action_noise
+"${PY[@]}" scripts/run_with_src.py experiments/pusht_benchmark.py --seeds 1 2 3 4 --train-states 10 --train-candidates 6 --eval-episodes 3 --candidates 16 --horizon 20 --epochs 12 --diffusion-steps 24 --mc-trials 20 --k-values 1 8 16 --regimes pusht_aligned pusht_low_diversity pusht_high_temp_misaligned
 "${PY[@]}" scripts/claim_audit.py --fail-on-error

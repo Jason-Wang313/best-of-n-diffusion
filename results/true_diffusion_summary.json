@@ -1,17 +1,21 @@
 {
-  "anti_correlated_real_change_high_minus_low": -0.42190081380024,
+  "ablation_samplers": [
+    "clean_target_ablation"
+  ],
+  "anti_correlated_real_change_high_minus_low": -0.4058644872603948,
   "artifact_tables": {
     "aggregate": "results/tables/true_diffusion_aggregate.csv",
     "curves": "results/tables/true_diffusion_curves.csv",
     "diversity": "results/tables/true_diffusion_diversity.csv",
     "effect_cis": "results/tables/true_diffusion_effect_cis.csv",
     "runtime": "results/tables/true_diffusion_runtime.csv",
+    "sampler_comparison": "results/tables/true_diffusion_sampler_comparison.csv",
     "scorer_gap_cis": "results/tables/true_diffusion_scorer_gap_cis.csv",
     "seed_aggregate": "results/tables/true_diffusion_seed_aggregate.csv",
     "training": "results/tables/true_diffusion_training.csv"
   },
-  "ddim_oracle_gain_high_minus_low": 0.28119772261801834,
-  "ddpm_oracle_gain_high_minus_low": 0.2863688834598277,
+  "ddim_oracle_gain_high_minus_low": 0.3704579302077864,
+  "ddpm_oracle_gain_high_minus_low": 0.3813791469042681,
   "diffusion_policy_validity_checklist": {
     "action_sequence_generation": true,
     "clean_target_ablation_kept": true,
@@ -21,20 +25,20 @@
     "stochastic_ddpm_sampling": true,
     "true_epsilon_prediction": true
   },
-  "epsilon_ddpm_max_loss_ratio": 0.98249124790014,
+  "epsilon_ddpm_max_loss_ratio": 0.9702887848598479,
   "fastest_sampler_k": {
     "K": 1.0,
-    "runtime_per_candidate_ms": 0.32014874999883125,
+    "runtime_per_candidate_ms": 0.34120243056147753,
     "sampler": "clean_target_ablation"
   },
-  "hidden_tail_misaligned_real_change_high_minus_low": 0.3610352968406543,
+  "hidden_tail_misaligned_real_change_high_minus_low": 0.2615441417867731,
   "k_values": [
     1,
     4,
     16
   ],
   "loss_decreased_all_epsilon_seeds": true,
-  "low_diversity_oracle_gain_high_minus_low": 0.07868361703437698,
+  "low_diversity_oracle_gain_high_minus_low": 0.10116142729180544,
   "measured_wall_clock_runtime": true,
   "n_values": [
     1,
@@ -43,7 +47,12 @@
     8,
     16
   ],
-  "num_training_seeds": 2,
+  "num_training_seeds": 4,
+  "primary_samplers": [
+    "ddim_eps",
+    "ddpm_eps",
+    "consistency_1step"
+  ],
   "regimes": [
     "action_noise",
     "changed_friction",
@@ -51,7 +60,8 @@
     "id",
     "low_diversity"
   ],
-  "runtime_rows": 90,
+  "runtime_rows": 540,
+  "sampler_comparison_rows": 9,
   "sampler_families": [
     "clean_target_ablation",
     "consistency_1step",
@@ -72,7 +82,7 @@
   ],
   "slowest_sampler_k": {
     "K": 16.0,
-    "runtime_per_candidate_ms": 2.547408333331684,
+    "runtime_per_candidate_ms": 1.5707805555621235,
     "sampler": "ddpm_eps"
   }
 }

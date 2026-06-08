@@ -14,11 +14,12 @@ Claims are promotable only when supported by `results/claims_status.json` and co
 8. The project is not a WAM clone.
 9. The project is not a JEPA clone.
 10. Major promoted claims are backed by CSV/JSON artifacts.
-11. The learned Diffusion Policy-lite experiment includes state-conditioned and 32x32 image-conditioned variants with seed-level summaries, visual OOD regimes, confidence intervals, and receding-horizon evaluation.
-12. A true epsilon-prediction action DDPM/DDIM policy reproduces the Best-of-N law with stochastic DDPM-style sampling, one-step consistency-style sampling, and the older clean-target denoiser held as an ablation.
-13. A PushT simulator benchmark path reranks actual sampled action trajectories using real environment rollout utility and shows aligned gains, low-diversity saturation, and misaligned-scorer failure/gap behavior.
+11. The learned Diffusion Policy-lite experiment includes state-conditioned and 32x32 image-conditioned variants with seed-level summaries, visual OOD regimes, confidence intervals, and receding-horizon evaluation. It is supporting evidence, not the main diffusion-policy credibility tier.
+12. A true epsilon-prediction action DDPM/DDIM policy reproduces the Best-of-N law with DDIM, stochastic DDPM-style sampling, one-step consistency-style sampling, measured runtime, and the older clean-target denoiser held as an ablation.
+13. A PushT simulator benchmark path reranks actual sampled action trajectories using simulator rollout utility and shows aligned gains, low-diversity saturation, misaligned-scorer failure/gap behavior, and selected coverage/success curves.
 14. Runtime recommendations are backed by both abstract `N x K` budget sweeps and measured wall-clock runtime for true diffusion and PushT sampling/rollouts.
-15. Global diffusion-policy wording is promoted only when controlled, learned-lite, true-DDPM, and PushT tiers all pass.
+15. Global diffusion-policy wording is promoted only when the true-DDPM and PushT rollout-metric gates pass. Toy-controlled and learned-lite tiers remain diagnostic and supporting context.
+16. The reviewer-skepticism checklist must pass: true DDPM survives, PushT survives, no real-robot or full visual-policy overclaim is present, runtime evidence is present, negative controls are present, and no full-run low-power warning is active.
 
 ## Non-Claims
 

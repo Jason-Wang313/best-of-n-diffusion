@@ -1,6 +1,6 @@
 # Best-of-N Diffusion Policy
 
-Paper title: How Many Diffusion Trajectories Should a Robot Sample? Inference-time selection laws for diffusion action policies.
+Paper title: How Many Diffusion Trajectories Should a Robot Sample? Inference-Time Selection Laws for Diffusion Policies.
 
 This repository studies inference-time selection for stochastic diffusion action generators. Given an observation `o`, a sampler proposes `N` action trajectories, a reranker score `S(o, tau)` selects the top-scoring candidate, and the measured quantity is real task utility minus optional denoising latency cost.
 
@@ -28,18 +28,18 @@ pytest
 
 Artifacts are written under `results/` by default, or `results/smoke/` for the smoke script.
 
-The claim audit also writes `results/ideal_metrics_status.json`; in this repo, `SUPPORTED` means the corresponding strong effect-size and CI gate in `docs/ideal_metrics.md` passed. The smoke run keeps the learned and benchmark legs small, while the full run uses multi-seed learned state/image evidence plus true-DDPM and PushT simulator tiers.
+The claim audit also writes `results/ideal_metrics_status.json`; in this repo, `SUPPORTED` means the corresponding strong effect-size and CI gate in `docs/ideal_metrics.md` passed. The smoke run keeps the learned and benchmark legs small, while the full run uses multi-seed learned state/image evidence plus 12-unit true-DDPM and PushT simulator rollout tiers.
 
 See `docs/readiness.md` for the final audit inventory, strongest supported claim, weakest remaining claim, and CPU-only scope.
 
 ## Experiment Families
 
 - Family A: controlled diffusion-like action sampler for 2D reaching/pushing.
-- Family B: learned Diffusion Policy-lite with a state-conditioned MLP denoiser, a 32x32 image-conditioned tiny-CNN denoiser, action horizons, visual ID/OOD evaluation, seed-level summaries, CI tables, and receding-horizon execution.
+- Family B: learned Diffusion Policy-lite with a state-conditioned MLP denoiser, a 32x32 image-conditioned tiny-CNN denoiser, action horizons, visual ID/OOD evaluation, seed-level summaries, CI tables, and receding-horizon execution. This is supporting evidence rather than the main diffusion-policy credibility tier.
 - Family C: scorer/reranker comparison across random, diffusion proxy, behavior-cloning critic, pilot value critic, calibrated critic, misaligned tail scorer, oracle, and a calibration success/failure map.
 - Family D: phase diagram over trajectory count `N` and denoising steps `K` at fixed budget pressure.
-- Family E: true epsilon-prediction action DDPM with DDIM sampling, stochastic DDPM-style sampling, one-step consistency-style sampling, and clean-target denoiser ablation over `K = 1, 2, 4, 8, 16, 32` where enabled.
-- Family F: PushT simulator benchmark path using `gym_pusht/PushT-v0`, heuristic demonstrations for CPU training, true action diffusion trajectory sampling, actual simulator rollout utility, reranker baselines, diversity diagnostics, and measured runtime.
+- Family E: true epsilon-prediction action DDPM with DDIM sampling, stochastic DDPM-style sampling, one-step consistency-style sampling, measured runtime, and clean-target denoiser ablation over the enabled `K` grid.
+- Family F: PushT simulator benchmark path using `gym_pusht/PushT-v0`, heuristic demonstrations for CPU training, true action diffusion trajectory sampling, actual simulator rollout utility, selected coverage/success curves, reranker baselines, diversity diagnostics, and measured runtime.
 
 ## Claim Boundary
 

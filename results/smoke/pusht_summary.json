@@ -1,10 +1,14 @@
 {
+  "actual_rollout_metric_curves": true,
   "actual_simulator_rollouts": true,
   "artifact_tables": {
     "aggregate": "results/tables/pusht_aggregate.csv",
     "curves": "results/tables/pusht_curves.csv",
     "diversity": "results/tables/pusht_diversity.csv",
     "effect_cis": "results/tables/pusht_effect_cis.csv",
+    "rollout_metric_aggregate": "results/tables/pusht_rollout_metric_aggregate.csv",
+    "rollout_metric_effect_cis": "results/tables/pusht_rollout_metric_effect_cis.csv",
+    "rollout_metric_seed_aggregate": "results/tables/pusht_rollout_metric_seed_aggregate.csv",
     "rollouts": "results/tables/pusht_rollouts.csv",
     "runtime": "results/tables/pusht_runtime.csv",
     "scorer_gap_cis": "results/tables/pusht_scorer_gap_cis.csv",
@@ -28,6 +32,7 @@
   "loss_decreased_all_seeds": true,
   "max_loss_ratio": 0.9940840544411839,
   "mean_candidate_rollout_coverage": 0.13634625943753723,
+  "mean_candidate_rollout_success": 0.0,
   "measured_wall_clock_runtime": true,
   "n_values": [
     1,
@@ -36,7 +41,10 @@
     8
   ],
   "num_training_seeds": 1,
+  "pusht_aligned_final_coverage_gain_high_minus_low": 0.08298809229351628,
+  "pusht_aligned_max_coverage_gain_high_minus_low": 0.056499916562539776,
   "pusht_aligned_oracle_gain_high_minus_low": 0.0569024659749397,
+  "pusht_aligned_success_gain_high_minus_low": 0.0,
   "pusht_low_diversity_oracle_gain_high_minus_low": 0.00026665495611714147,
   "pusht_misaligned_real_change_high_minus_low": -0.04061911176203459,
   "pusht_oracle_minus_misaligned_high_n": 0.16884400890971873,
@@ -46,6 +54,13 @@
     "pusht_high_temp_misaligned",
     "pusht_low_diversity"
   ],
+  "rollout_metric_columns": [
+    "exact_selected_max_coverage",
+    "exact_selected_final_coverage",
+    "exact_selected_success"
+  ],
+  "rollout_metric_effect_rows": 252,
+  "rollout_metric_seed_rows": 336,
   "rollout_rows": 96,
   "runtime_rows": 12,
   "sampler_families": [
