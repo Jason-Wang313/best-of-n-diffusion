@@ -28,8 +28,8 @@
   "epsilon_ddpm_max_loss_ratio": 0.9884174110910473,
   "fastest_sampler_k": {
     "K": 1.0,
-    "runtime_per_candidate_ms": 0.4370500000732136,
-    "sampler": "clean_target_ablation"
+    "runtime_per_candidate_ms": 0.8331541666848352,
+    "sampler": "ddim_eps"
   },
   "hidden_tail_misaligned_real_change_high_minus_low": -0.006895589255349055,
   "k_values": [
@@ -79,7 +79,7 @@
   ],
   "slowest_sampler_k": {
     "K": 8.0,
-    "runtime_per_candidate_ms": 2.5179708333477415,
-    "sampler": "clean_target_ablation"
+    "runtime_per_candidate_ms": 2.0219270830542277,
+    "sampler": "ddpm_eps"
   }
 }

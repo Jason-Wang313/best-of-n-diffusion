@@ -50,7 +50,7 @@
   "pusht_low_diversity_oracle_gain_high_minus_low": 0.019517770840369035,
   "pusht_misaligned_real_change_high_minus_low": -0.04841533414160875,
   "pusht_oracle_minus_misaligned_high_n": 0.14133177023423266,
-  "pusht_value_minus_misaligned_high_n": 0.12668899137972575,
+  "pusht_value_minus_misaligned_high_n": 0.12668899137972572,
   "regimes": [
     "pusht_aligned",
     "pusht_high_temp_misaligned",

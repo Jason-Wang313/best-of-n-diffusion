@@ -4,7 +4,7 @@ Paper title: How Many Diffusion Trajectories Should a Robot Sample? Inference-Ti
 
 This repository studies inference-time selection for stochastic diffusion action generators. Given an observation `o`, a sampler proposes `N` action trajectories, a reranker score `S(o, tau)` selects the top-scoring candidate, and the measured quantity is real task utility minus optional denoising latency cost.
 
-The project is paper-first: the theorem is finite and tie-aware, the experiments are CPU-light, and the claim audit only promotes claims backed by CSV/JSON artifacts with confidence-interval evidence. It does not claim real-robot validation or universal Diffusion Policy improvement.
+The project is paper-first: the theorem is finite and tie-aware, the experiments are CPU-light, and the claim audit only promotes claims backed by CSV/JSON artifacts with confidence-interval evidence. The central fix is Audit-Then-Sample, an inference-time controller that admits high `N` only when delta-budgeted lower-bound utility, tail, diversity, and latency gates pass; otherwise it stops early, audits rollouts, repairs, increases diversity, or blocks high-`N` selection. It does not claim real-robot validation or universal Diffusion Policy improvement.
 
 ## Scientific Object
 
@@ -35,6 +35,7 @@ See `docs/readiness.md` for the final audit inventory, strongest supported claim
 ## Experiment Families
 
 - Family A: controlled diffusion-like action sampler for 2D reaching/pushing.
+- Family A2: Audit-Then-Sample controller audit with aligned, anti-correlated, shuffled, adversarial-tail, duplicated-artifact, correlated-pool, missing-utility, latency-spike, adaptive-stopping, repair-success, and repair-failure regimes.
 - Family B: learned Diffusion Policy-lite with a state-conditioned MLP denoiser, a 32x32 image-conditioned tiny-CNN denoiser, action horizons, visual ID/OOD evaluation, seed-level summaries, CI tables, and receding-horizon execution. This is supporting evidence rather than the main diffusion-policy credibility tier.
 - Family C: scorer/reranker comparison across random, diffusion proxy, behavior-cloning critic, pilot value critic, calibrated critic, misaligned tail scorer, oracle, and a calibration success/failure map.
 - Family D: phase diagram over trajectory count `N` and denoising steps `K` at fixed budget pressure.
@@ -48,5 +49,6 @@ Promoted claims must pass `scripts/run_claim_audit.sh`. Unsupported or partial c
 - do not claim real-robot validation;
 - do not claim that Best-of-N always helps;
 - do not claim that calibration always repairs every bad scorer;
+- do not claim that Audit-Then-Sample is a hardware safety certificate or production deployment rule;
 - do not claim that a hand-designed sampler is a full Diffusion Policy model;
 - do not claim full-scale visual manipulation or real-robot validation from the PushT path.

@@ -1,0 +1,93 @@
+{
+  "abstention_rate": 0.9375,
+  "action_vocabulary": [
+    "increase_N",
+    "stop_early",
+    "reduce_K",
+    "calibrate_scorer",
+    "audit_rollouts",
+    "increase_diversity",
+    "block_high_N"
+  ],
+  "adaptive_stop_fraction": 1.0,
+  "adaptive_stopping_savings_mean": 0.6666666666666667,
+  "aligned_allow_high_n_fraction": 1.0,
+  "anti_correlated_block_fraction": 1.0,
+  "artifact_figures": {
+    "decision_regions": "results/figures/audit_then_sample_decision_regions.png"
+  },
+  "artifact_tables": {
+    "calibration": "results/tables/audit_then_sample_calibration.csv",
+    "decisions": "results/tables/audit_then_sample_decisions.csv"
+  },
+  "calibration_failure_rows": 45,
+  "calibration_success_rows": 19,
+  "collapsed_stop_early_fraction": 1.0,
+  "confidence_gates_present": true,
+  "confidence_method": "both",
+  "controller_conservative_certification": true,
+  "effective_n_ratio_mean": 0.6650641025641024,
+  "effective_n_ratio_min": 0.0625,
+  "false_admit_count": 0,
+  "false_admit_rate": 0.0,
+  "false_block_rate": 0.0,
+  "k_values": [
+    1,
+    8,
+    32
+  ],
+  "latency_limited_small_budget_fraction": 1.0,
+  "lower_bound_coverage": 1.0,
+  "n_values": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64,
+    96
+  ],
+  "negative_controls": [
+    "adaptive_latency_limited",
+    "adversarial_tail_scorer",
+    "anti_correlated_scorer",
+    "calibration_drift",
+    "collapsed_sampler",
+    "correlated_candidate_pool",
+    "duplicated_high_score_artifacts",
+    "hidden_ood_dynamics",
+    "latency_spike",
+    "missing_utility",
+    "random_score_failed_repair",
+    "small_audit_underpowered",
+    "tail_misaligned_scorer"
+  ],
+  "regimes": [
+    "high_diversity_aligned",
+    "anti_correlated_scorer",
+    "shuffled_scorer",
+    "tail_misaligned_scorer",
+    "adversarial_tail_scorer",
+    "noisy_rollout_utility",
+    "hidden_ood_dynamics",
+    "duplicated_high_score_artifacts",
+    "correlated_candidate_pool",
+    "calibration_drift",
+    "small_audit_underpowered",
+    "collapsed_sampler",
+    "latency_limited_aligned",
+    "latency_spike",
+    "missing_utility"
+  ],
+  "repair_bound_validation_fraction": 1.0,
+  "repair_failure_control_fraction": 1.0,
+  "repair_success_methods": [
+    "affine",
+    "isotonic"
+  ],
+  "risk_delta": 0.01,
+  "shuffled_repair_or_block_fraction": 1.0,
+  "tail_misaligned_block_fraction": 1.0,
+  "underpowered_abstain_fraction": 1.0
+}

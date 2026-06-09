@@ -48,6 +48,7 @@ if [ "$IS_WSL" -eq 1 ]; then
 fi
 
 "${PY[@]}" -m pytest -q
+"${PY[@]}" scripts/run_with_src.py experiments/audit_then_sample.py --seeds 1 2 --states 8 --candidates 96 --bootstrap 40
 "${PY[@]}" scripts/run_with_src.py experiments/controlled_sampler.py --seeds 1 2 --states 8 --candidates 96 --mc-trials 220
 "${PY[@]}" scripts/run_with_src.py experiments/scorer_comparison.py --seeds 1 2 --states 8 --candidates 96 --mc-trials 220
 "${PY[@]}" scripts/run_with_src.py experiments/nk_budget.py --seeds 1 2 --states 8 --max-candidates 64 --lambda-cost 0.0035

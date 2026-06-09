@@ -1,6 +1,6 @@
 # Audit Readiness
 
-This repository is ready to make only claims that pass `scripts/run_claim_audit.sh`. The strongest current claim is the tiered inference-time law: high `N` is useful only when candidate diversity and upper-tail scorer alignment are good enough to justify the added denoising/runtime cost. Global diffusion-policy wording now depends on the true-DDPM and PushT rollout-metric gates, with toy and learned-lite tiers used as diagnostics and supporting context.
+This repository is ready to make only claims that pass `scripts/run_claim_audit.sh`. The strongest current claim is the tiered inference-time law plus conservative controller: high `N` is admitted only when candidate diversity, upper-tail real utility, and latency-adjusted lower-bound gates pass, and Audit-Then-Sample otherwise abstains, audits rollouts, stops, repairs, increases diversity, reduces `K`, or blocks high-`N` selection in the audited CPU regimes. Global diffusion-policy wording now depends on the true-DDPM and PushT rollout-metric gates, with toy, controller, and learned-lite tiers used as diagnostics and supporting context.
 
 The weakest remaining claim is external validity beyond CPU simulation: the repo now includes true epsilon-prediction action diffusion and a PushT simulator path, but it still does not establish real-robot performance, production-scale visual manipulation quality, or universal high-`N` improvement.
 
@@ -9,6 +9,7 @@ The weakest remaining claim is external validity beyond CPU simulation: the repo
 Core summaries:
 
 - `results/controlled_sampler_summary.json`
+- `results/audit_then_sample_summary.json`
 - `results/scorer_comparison_summary.json`
 - `results/nk_budget_summary.json`
 - `results/learned_policy_lite_summary.json`
@@ -21,6 +22,8 @@ Primary tables:
 - `results/tables/controlled_sampler_curves.csv`
 - `results/tables/controlled_sampler_seed_aggregate.csv`
 - `results/tables/controlled_sampler_effect_cis.csv`
+- `results/tables/audit_then_sample_decisions.csv`
+- `results/tables/audit_then_sample_calibration.csv`
 - `results/tables/scorer_comparison_curves.csv`
 - `results/tables/scorer_comparison_seed_aggregate.csv`
 - `results/tables/scorer_comparison_effect_cis.csv`
@@ -48,6 +51,7 @@ Primary tables:
 Primary figures:
 
 - `results/figures/controlled_sampler_curves.png`
+- `results/figures/audit_then_sample_decision_regions.png`
 - `results/figures/scorer_comparison.png`
 - `results/figures/nk_budget_phase_diagram.png`
 - `results/figures/learned_policy_lite_ood.png`

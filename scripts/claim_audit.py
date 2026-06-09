@@ -167,6 +167,7 @@ def main() -> None:
     args = parser.parse_args()
 
     controlled = load_json("controlled_sampler_summary.json")
+    controller = load_json("audit_then_sample_summary.json")
     scorer = load_json("scorer_comparison_summary.json")
     nk = load_json("nk_budget_summary.json")
     learned = load_json("learned_policy_lite_summary.json")
@@ -175,6 +176,8 @@ def main() -> None:
     controlled_agg = csv_rows(RESULTS / "tables" / "controlled_sampler_aggregate.csv")
     controlled_div = csv_rows(RESULTS / "tables" / "controlled_sampler_diversity.csv")
     controlled_effect_cis = csv_rows(RESULTS / "tables" / "controlled_sampler_effect_cis.csv")
+    controller_decisions = csv_rows(RESULTS / "tables" / "audit_then_sample_decisions.csv")
+    controller_calibration = csv_rows(RESULTS / "tables" / "audit_then_sample_calibration.csv")
     scorer_agg = csv_rows(RESULTS / "tables" / "scorer_comparison_aggregate.csv")
     scorer_effect_cis = csv_rows(RESULTS / "tables" / "scorer_comparison_effect_cis.csv")
     calibration_map = csv_rows(RESULTS / "tables" / "calibration_repair_map.csv")
@@ -530,6 +533,179 @@ def main() -> None:
         strong_metrics["calibration_repair"],
     )
 
+    controller_actions = set(controller.get("action_vocabulary") or [])
+    required_controller_actions = {
+        "increase_N",
+        "stop_early",
+        "reduce_K",
+        "calibrate_scorer",
+        "audit_rollouts",
+        "increase_diversity",
+        "block_high_N",
+    }
+    controller_decision_columns = csv_columns(RESULTS / "tables" / "audit_then_sample_decisions.csv")
+    controller_calibration_columns = csv_columns(RESULTS / "tables" / "audit_then_sample_calibration.csv")
+    controller_negative_controls = set(controller.get("negative_controls") or [])
+    required_controller_negative_controls = {
+        "anti_correlated_scorer",
+        "adversarial_tail_scorer",
+        "tail_misaligned_scorer",
+        "hidden_ood_dynamics",
+        "duplicated_high_score_artifacts",
+        "correlated_candidate_pool",
+        "calibration_drift",
+        "collapsed_sampler",
+        "latency_spike",
+        "missing_utility",
+        "random_score_failed_repair",
+    }
+    controller_required_bound_columns = {
+        "risk_delta",
+        "effective_n_for_bounds",
+        "utility_gain_lcb",
+        "tail_utility_lcb",
+        "latency_adjusted_gain_lcb",
+        "admit_high_N",
+        "abstention_reason",
+        "false_admit_negative_control",
+    }
+    calibration_required_bound_columns = {
+        "repair_regime",
+        "success",
+        "repair_method",
+        "original_tail_rank_correlation",
+        "repaired_tail_rank_correlation",
+        "original_utility_gain_lcb",
+        "repaired_utility_gain_lcb",
+        "original_tail_utility_lcb",
+        "repaired_tail_utility_lcb",
+        "original_latency_adjusted_gain_lcb",
+        "repaired_latency_adjusted_gain_lcb",
+    }
+
+    def truthy(row: dict[str, Any], key: str) -> bool:
+        value = row.get(key)
+        if isinstance(value, bool):
+            return value
+        return str(value).strip().lower() in {"true", "1", "yes"}
+
+    controller_admitted_rows = [row for row in controller_decisions if truthy(row, "admit_high_N")]
+    controller_false_admit_rows = [row for row in controller_decisions if truthy(row, "false_admit_negative_control")]
+    controller_underpowered_rows = [
+        row
+        for row in controller_decisions
+        if row.get("regime") in {"correlated_candidate_pool", "small_audit_underpowered"}
+    ]
+    admitted_bounds_positive = all(
+        f(row, "utility_gain_lcb") > 0.0
+        and f(row, "tail_utility_lcb") > 0.0
+        and f(row, "latency_adjusted_gain_lcb") > 0.0
+        for row in controller_admitted_rows
+    )
+    underpowered_abstain_rows = bool(controller_underpowered_rows) and all(
+        not truthy(row, "admit_high_N")
+        and row.get("action_recommendation") in {"audit_rollouts", "increase_diversity", "block_high_N"}
+        for row in controller_underpowered_rows
+    )
+    repair_success_rows = [row for row in controller_calibration if truthy(row, "success")]
+    repair_negative_rows = [row for row in controller_calibration if truthy(row, "negative_control")]
+    repair_success_bound_rows = bool(repair_success_rows) and all(
+        f(row, "repaired_utility_gain_lcb") > 0.0
+        and f(row, "repaired_tail_utility_lcb") > 0.0
+        and f(row, "repaired_latency_adjusted_gain_lcb") > 0.0
+        for row in repair_success_rows
+    )
+    repair_negative_controls_fail = bool(repair_negative_rows) and all(
+        not truthy(row, "success") for row in repair_negative_rows
+    )
+    controller_weak = (
+        bool(controller)
+        and required_controller_actions.issubset(controller_actions)
+        and {"selected_N", "selected_K", "decision_label", "action_recommendation"}.issubset(controller_decision_columns)
+        and controller_required_bound_columns.issubset(controller_decision_columns)
+        and calibration_required_bound_columns.issubset(controller_calibration_columns)
+        and len(controller_decisions) > 0
+        and len(controller_calibration) > 0
+    )
+    controller_strong = (
+        controller_weak
+        and f(controller, "aligned_allow_high_n_fraction") >= 0.75
+        and f(controller, "anti_correlated_block_fraction") >= 0.75
+        and f(controller, "tail_misaligned_block_fraction") >= 0.75
+        and f(controller, "shuffled_repair_or_block_fraction") >= 0.75
+        and f(controller, "collapsed_stop_early_fraction") >= 0.75
+        and f(controller, "latency_limited_small_budget_fraction") >= 0.75
+        and f(controller, "false_admit_rate") == 0.0
+        and int(f(controller, "false_admit_count", 1.0)) == 0
+        and admitted_bounds_positive
+        and underpowered_abstain_rows
+        and int(f(controller, "calibration_success_rows", 0.0)) >= 1
+        and int(f(controller, "calibration_failure_rows", 0.0)) >= 1
+        and repair_success_bound_rows
+        and repair_negative_controls_fail
+        and f(controller, "repair_bound_validation_fraction") == 1.0
+        and f(controller, "repair_failure_control_fraction") == 1.0
+        and f(controller, "adaptive_stop_fraction") >= 0.75
+        and f(controller, "adaptive_stopping_savings_mean") > 0.0
+        and bool(controller.get("controller_conservative_certification"))
+        and bool(controller.get("confidence_gates_present"))
+        and required_controller_negative_controls.issubset(controller_negative_controls)
+        and (RESULTS / "figures" / "audit_then_sample_decision_regions.png").exists()
+    )
+    strong_metrics["audit_then_sample_controller"] = {
+        "aligned_allow_high_n_fraction": controller.get("aligned_allow_high_n_fraction"),
+        "anti_correlated_block_fraction": controller.get("anti_correlated_block_fraction"),
+        "tail_misaligned_block_fraction": controller.get("tail_misaligned_block_fraction"),
+        "shuffled_repair_or_block_fraction": controller.get("shuffled_repair_or_block_fraction"),
+        "collapsed_stop_early_fraction": controller.get("collapsed_stop_early_fraction"),
+        "latency_limited_small_budget_fraction": controller.get("latency_limited_small_budget_fraction"),
+        "false_admit_rate": controller.get("false_admit_rate"),
+        "false_admit_count": controller.get("false_admit_count"),
+        "admitted_rows": len(controller_admitted_rows),
+        "admitted_bounds_positive": admitted_bounds_positive,
+        "underpowered_abstain_rows": underpowered_abstain_rows,
+        "lower_bound_coverage": controller.get("lower_bound_coverage"),
+        "calibration_success_rows": controller.get("calibration_success_rows"),
+        "calibration_failure_rows": controller.get("calibration_failure_rows"),
+        "repair_bound_validation_fraction": controller.get("repair_bound_validation_fraction"),
+        "repair_failure_control_fraction": controller.get("repair_failure_control_fraction"),
+        "repair_success_bound_rows": repair_success_bound_rows,
+        "repair_negative_controls_fail": repair_negative_controls_fail,
+        "repair_success_methods": controller.get("repair_success_methods"),
+        "effective_n_ratio_mean": controller.get("effective_n_ratio_mean"),
+        "effective_n_ratio_min": controller.get("effective_n_ratio_min"),
+        "adaptive_stop_fraction": controller.get("adaptive_stop_fraction"),
+        "adaptive_stopping_savings_mean": controller.get("adaptive_stopping_savings_mean"),
+        "controller_conservative_certification": controller.get("controller_conservative_certification"),
+        "confidence_gates_present": controller.get("confidence_gates_present"),
+        "action_vocabulary": sorted(controller_actions),
+        "negative_controls": sorted(controller_negative_controls),
+        "false_admit_rows": controller_false_admit_rows[:5],
+        "decision_rows": len(controller_decisions),
+        "calibration_rows": len(controller_calibration),
+        "decision_columns": sorted(controller_decision_columns),
+        "calibration_columns": sorted(controller_calibration_columns),
+        "thresholds": {
+            "decision_fraction_min": 0.75,
+            "false_admit_rate_max": 0.0,
+            "admitted_lcbs_must_be_positive": True,
+            "underpowered_cases_must_abstain": True,
+            "calibration_success_rows_min": 1,
+            "calibration_failure_rows_min": 1,
+            "repair_success_requires_positive_heldout_lcbs": True,
+            "adaptive_stop_fraction_min": 0.75,
+            "requires_confidence_gates": True,
+            "requires_negative_controls": sorted(required_controller_negative_controls),
+        },
+    }
+    add(
+        claims,
+        "controller_fix",
+        "Audit-Then-Sample chooses when to increase N, stop early, repair, increase diversity, reduce K, or block high-N selection.",
+        status(controller_strong, controller_weak),
+        strong_metrics["audit_then_sample_controller"],
+    )
+
     not_wam_ok = (
         "what theorem is reused" in diff_doc
         and "diffusion tail over-selection" in diff_doc
@@ -561,12 +737,15 @@ def main() -> None:
 
     required_artifacts = [
         RESULTS / "controlled_sampler_summary.json",
+        RESULTS / "audit_then_sample_summary.json",
         RESULTS / "scorer_comparison_summary.json",
         RESULTS / "nk_budget_summary.json",
         RESULTS / "learned_policy_lite_summary.json",
         RESULTS / "tables" / "controlled_sampler_aggregate.csv",
         RESULTS / "tables" / "controlled_sampler_seed_aggregate.csv",
         RESULTS / "tables" / "controlled_sampler_effect_cis.csv",
+        RESULTS / "tables" / "audit_then_sample_decisions.csv",
+        RESULTS / "tables" / "audit_then_sample_calibration.csv",
         RESULTS / "tables" / "scorer_comparison_aggregate.csv",
         RESULTS / "tables" / "scorer_comparison_seed_aggregate.csv",
         RESULTS / "tables" / "scorer_comparison_effect_cis.csv",
@@ -596,6 +775,7 @@ def main() -> None:
         RESULTS / "tables" / "pusht_rollout_metric_aggregate.csv",
         RESULTS / "tables" / "pusht_rollout_metric_effect_cis.csv",
         RESULTS / "figures" / "nk_budget_phase_diagram.png",
+        RESULTS / "figures" / "audit_then_sample_decision_regions.png",
         RESULTS / "figures" / "true_diffusion_survival.png",
         RESULTS / "figures" / "true_diffusion_runtime.png",
         RESULTS / "figures" / "true_diffusion_sampler_comparison.png",
@@ -603,6 +783,8 @@ def main() -> None:
     ]
     table_min_rows = {
         "controlled_sampler_aggregate.csv": 42,
+        "audit_then_sample_decisions.csv": 20 if is_smoke_results() else 80,
+        "audit_then_sample_calibration.csv": 4 if is_smoke_results() else 20,
         "scorer_comparison_aggregate.csv": 49,
         "nk_budget_phase.csv": 30,
         "learned_policy_lite_aggregate.csv": 200,
@@ -623,6 +805,7 @@ def main() -> None:
         (RESULTS / "figures" / name).exists() and (RESULTS / "figures" / name).stat().st_size >= 10_000
         for name in [
             "controlled_sampler_curves.png",
+            "audit_then_sample_decision_regions.png",
             "scorer_comparison.png",
             "nk_budget_phase_diagram.png",
             "learned_policy_lite_ood.png",
@@ -1119,6 +1302,16 @@ def main() -> None:
             "rollout_metrics_supported": pusht_rollout_metrics_strong,
             "required_for_global_diffusion_policy_wording": True,
         },
+        "controller_fix": {
+            "supported": controller_strong and low_div_strong and misaligned_strong and latency_strong and repair_strong,
+            "audit_then_sample_supported": controller_strong,
+            "diversity_gate_supported": low_div_strong,
+            "tail_alignment_gate_supported": misaligned_strong and aligned_strong,
+            "latency_gate_supported": latency_strong,
+            "calibration_repair_supported": repair_strong,
+            "negative_controls_supported": required_controller_negative_controls.issubset(controller_negative_controls),
+            "required_for_fix_wording": True,
+        },
     }
     strong_metrics["claim_gates"] = claim_gates
 
@@ -1134,6 +1327,7 @@ def main() -> None:
     reviewer_skepticism_checklist = {
         "true_ddpm_survives": true_strong,
         "pusht_survives": pusht_strong and pusht_rollout_metrics_strong,
+        "controller_fix_tier_supported": claim_gates["controller_fix"]["supported"],
         "no_real_robot_overclaim": not real_robot_overclaim_hits,
         "no_full_visual_policy_overclaim": not visual_overclaim_hits,
         "runtime_evidence_present": runtime_tier_strong,
@@ -1146,6 +1340,8 @@ def main() -> None:
     strong_metrics["tiered_global_claim_gate"] = {
         "toy_controlled_supported": claim_gates["toy_controlled"]["supported"],
         "learned_policy_lite_supported_as_context": learned_strong,
+        "audit_then_sample_controller_supported": controller_strong,
+        "controller_fix_gate_supported": claim_gates["controller_fix"]["supported"],
         "true_action_diffusion_supported": true_strong,
         "pusht_benchmark_supported": pusht_strong,
         "pusht_rollout_metrics_supported": pusht_rollout_metrics_strong,

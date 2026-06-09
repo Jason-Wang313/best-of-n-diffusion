@@ -13,7 +13,7 @@ This repository instantiates that theorem for diffusion action trajectory infere
 - sample diversity, mode coverage, duplicate collapse, and marginal diversity gain;
 - denoising-step/sample-count tradeoffs through `B = N x K`;
 - scorer alignment in the high-score tail;
-- diffusion tail over-selection and latency-adjusted deployment gates.
+- diffusion tail over-selection and latency-adjusted Audit-Then-Sample controller gates.
 
 The new failure mode is diffusion tail over-selection / diversity-selection-latency tradeoff.
 
