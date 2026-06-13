@@ -40,7 +40,7 @@ Target: ICLR 2027 initial submission package. As of 2026-06-09, no official ICLR
 python scripts/build_iclr_paper.py
 bash scripts/run_claim_audit.sh
 python -m pytest -q
-rg -n "F(?:INAL RERUN)|T(?:ODO)|placehold(?:er)|almost\s+100|100[%]|validated on real robot[s]|Best-of-N always help[s]" paper docs README.md
+rg -n "F(?:INAL RERUN)|T(?:ODO)|placehold(?:er)|almost\s+100|100[%]|validated on real robot[s]|trajectory search always help[s]" paper docs README.md
 ```
 
 ## Manual Checks Before Upload

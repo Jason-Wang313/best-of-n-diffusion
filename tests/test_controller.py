@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from diffusion_best_of_n.controller import (
+from diffusion_audit.controller import (
     ALLOW_HIGH_N,
     AUDIT_ROLLOUTS,
     BLOCK_HIGH_N,

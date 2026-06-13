@@ -6,30 +6,30 @@ from collections.abc import Iterable
 
 import numpy as np
 
-from diffusion_best_of_n.alignment import (
+from diffusion_audit.alignment import (
     high_n_regret,
     score_utility_correlation,
     tail_rank_correlation,
     top_score_tail_real_utility,
 )
-from diffusion_best_of_n.theory import (
-    selected_score_best_of_n_finite,
-    simulate_best_of_n,
-    utility_best_of_n_finite,
+from diffusion_audit.theory import (
+    selected_score_max_selection_finite,
+    simulate_max_selection,
+    utility_max_selection_finite,
 )
 
 
 def evaluate_pool(scores, utilities, n_values: Iterable[int], mc_trials: int = 300, seed: int = 0) -> dict:
-    """Evaluate exact and Monte Carlo Best-of-N diagnostics for one pool."""
+    """Evaluate exact and Monte Carlo trajectory-selection diagnostics for one pool."""
 
     ns = [int(n) for n in n_values]
     score_arr = np.asarray(scores, dtype=float)
     utility_arr = np.asarray(utilities, dtype=float)
-    real_curve = utility_best_of_n_finite(score_arr, utility_arr, ns)
-    score_curve = selected_score_best_of_n_finite(score_arr, ns)
-    oracle_curve = utility_best_of_n_finite(utility_arr, utility_arr, ns)
+    real_curve = utility_max_selection_finite(score_arr, utility_arr, ns)
+    score_curve = selected_score_max_selection_finite(score_arr, ns)
+    oracle_curve = utility_max_selection_finite(utility_arr, utility_arr, ns)
     mc = {
-        n: float(np.mean(simulate_best_of_n(score_arr, utility_arr, n, trials=mc_trials, seed=seed + int(n))))
+        n: float(np.mean(simulate_max_selection(score_arr, utility_arr, n, trials=mc_trials, seed=seed + int(n))))
         for n in ns
     }
     max_n = max(ns)

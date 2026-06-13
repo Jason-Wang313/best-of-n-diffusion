@@ -10,14 +10,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from diffusion_best_of_n.action_ddpm import (
+from diffusion_audit.action_ddpm import (
     diffusion_internal_scores,
     sample_consistency_trajectories,
     sample_ddim_trajectories,
     sample_ddpm_trajectories,
     train_epsilon_denoiser,
 )
-from diffusion_best_of_n.benchmarks.pusht import (
+from diffusion_audit.benchmarks.pusht import (
     PUSHT_ACTION_HIGH,
     PUSHT_ACTION_LOW,
     PUSHT_ENV_ID,
@@ -28,12 +28,12 @@ from diffusion_best_of_n.benchmarks.pusht import (
     pusht_obs_to_features,
     pusht_trajectory_features,
 )
-from diffusion_best_of_n.diversity import diversity_summary, marginal_new_mode_discovery, trajectory_cluster_ids
-from diffusion_best_of_n.evaluation import curve_rows, evaluate_pool
-from diffusion_best_of_n.io import results_dir, write_json
-from diffusion_best_of_n.scorers import apply_linear_critic, fit_linear_value_critic, random_scores
-from diffusion_best_of_n.stats import bootstrap_mean_ci, mean_ci_columns, paired_high_minus_low_ci
-from diffusion_best_of_n.theory import utility_best_of_n_finite
+from diffusion_audit.diversity import diversity_summary, marginal_new_mode_discovery, trajectory_cluster_ids
+from diffusion_audit.evaluation import curve_rows, evaluate_pool
+from diffusion_audit.io import results_dir, write_json
+from diffusion_audit.scorers import apply_linear_critic, fit_linear_value_critic, random_scores
+from diffusion_audit.stats import bootstrap_mean_ci, mean_ci_columns, paired_high_minus_low_ci
+from diffusion_audit.theory import utility_max_selection_finite
 
 
 N_VALUES = [1, 2, 4, 8, 16, 32]
@@ -84,7 +84,7 @@ def pusht_scores(policy, raw_obs: np.ndarray, trajectories: np.ndarray, utilitie
 
 
 def selected_rollout_metric_curves(scores: np.ndarray, rollouts: list, n_values: list[int]) -> dict[str, dict[int, float]]:
-    """Compute exact Best-of-N selected rollout metrics for the score-ranked pool."""
+    """Compute exact maximum-score selected rollout metrics for the score-ranked pool."""
 
     metric_arrays = {
         "exact_selected_max_coverage": np.asarray([item.max_coverage for item in rollouts], dtype=float),
@@ -92,7 +92,7 @@ def selected_rollout_metric_curves(scores: np.ndarray, rollouts: list, n_values:
         "exact_selected_success": np.asarray([float(item.success) for item in rollouts], dtype=float),
     }
     return {
-        name: utility_best_of_n_finite(scores, values, n_values)
+        name: utility_max_selection_finite(scores, values, n_values)
         for name, values in metric_arrays.items()
     }
 
@@ -553,7 +553,7 @@ def main() -> None:
     axes[0].legend(fontsize=6.4, ncol=1)
     fig.suptitle("PushT benchmark: selected rollout outcomes versus sample count", fontsize=11)
     fig.tight_layout()
-    fig.savefig(out_dir / "figures" / "pusht_best_of_n.png", dpi=160)
+    fig.savefig(out_dir / "figures" / "pusht_max_selection.png", dpi=160)
     plt.close(fig)
 
 

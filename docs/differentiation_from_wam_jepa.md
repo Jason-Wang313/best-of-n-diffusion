@@ -2,7 +2,7 @@
 
 ## What Theorem Is Reused
 
-The reused mathematical object is the finite tie-aware Best-of-N law. For a fixed finite pool of candidates with score `S` and real utility `U`, the expected selected utility under maximum-score selection is exactly determined by the finite joint distribution of `(S, U)`, including score ties.
+The reused mathematical object is the finite tie-aware trajectory-selection law. For a fixed finite pool of candidates with score `S` and real utility `U`, the expected selected utility under maximum-score selection is exactly determined by the finite joint distribution of `(S, U)`, including score ties.
 
 ## What Is New Scientifically
 
@@ -39,4 +39,4 @@ The repository must include:
 
 ## What Would Make This Project Fail As A Clone
 
-The project fails as a clone if it can only be summarized as "same Best-of-N theorem, same experiments, different variable names." It must produce diffusion-specific artifacts about action trajectory diversity, denoising budget, reranker alignment, high-`N` bad-tail selection, and latency-adjusted selection.
+The project fails as a clone if it can only be summarized as "same selection theorem, same experiments, different variable names." It must produce diffusion-specific artifacts about action trajectory diversity, denoising budget, reranker alignment, high-`N` bad-tail selection, and latency-adjusted selection.

@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from diffusion_best_of_n.diversity import (
+from diffusion_audit.diversity import (
     cluster_entropy,
     duplicate_collapse_rate,
     effective_sample_diversity,

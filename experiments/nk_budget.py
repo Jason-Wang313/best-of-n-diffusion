@@ -9,12 +9,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from diffusion_best_of_n.io import results_dir, write_json
-from diffusion_best_of_n.latency import latency_adjusted_utility, total_budget, utility_per_diffusion_step
-from diffusion_best_of_n.scorers import aligned_scores
-from diffusion_best_of_n.stats import bootstrap_mean_ci, mean_ci_columns
-from diffusion_best_of_n.theory import utility_best_of_n_finite
-from diffusion_best_of_n.toy_control import make_observations, sample_diffusion_like_pool, trajectory_utilities
+from diffusion_audit.io import results_dir, write_json
+from diffusion_audit.latency import latency_adjusted_utility, total_budget, utility_per_diffusion_step
+from diffusion_audit.scorers import aligned_scores
+from diffusion_audit.stats import bootstrap_mean_ci, mean_ci_columns
+from diffusion_audit.theory import utility_max_selection_finite
+from diffusion_audit.toy_control import make_observations, sample_diffusion_like_pool, trajectory_utilities
 
 
 N_GRID = [1, 2, 4, 8, 16, 32]
@@ -50,7 +50,7 @@ def main() -> None:
                 )
                 utilities = trajectory_utilities(obs, pool.trajectories)
                 scores = aligned_scores(obs, pool.trajectories, seed=seed + state_idx + k, noise=0.02)
-                real_curve = utility_best_of_n_finite(scores, utilities, n_values)
+                real_curve = utility_max_selection_finite(scores, utilities, n_values)
                 for n in n_values:
                     real = float(real_curve[n])
                     adjusted = latency_adjusted_utility(real, n=n, k=k, lambda_cost=args.lambda_cost)

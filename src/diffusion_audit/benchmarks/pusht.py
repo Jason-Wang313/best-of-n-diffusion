@@ -1,4 +1,4 @@
-"""PushT simulator wrappers for CPU-light Best-of-N benchmark evidence."""
+"""PushT simulator wrappers for CPU-light trajectory-search benchmark evidence."""
 
 from __future__ import annotations
 

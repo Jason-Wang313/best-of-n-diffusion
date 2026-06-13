@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from diffusion_best_of_n.diffusion_lite import (
+from diffusion_audit.diffusion_lite import (
     IMAGE_SIZE,
     make_expert_dataset,
     make_image_expert_dataset,
@@ -20,11 +20,11 @@ from diffusion_best_of_n.diffusion_lite import (
     sample_image_denoised_trajectories,
     train_denoiser,
 )
-from diffusion_best_of_n.evaluation import curve_rows, evaluate_pool
-from diffusion_best_of_n.io import results_dir, write_json
-from diffusion_best_of_n.scorers import behavior_cloning_critic, calibrated_critic, diffusion_likelihood_proxy, oracle_scores
-from diffusion_best_of_n.stats import mean_ci_columns, paired_high_minus_low_ci
-from diffusion_best_of_n.toy_control import make_observations, trajectory_utilities
+from diffusion_audit.evaluation import curve_rows, evaluate_pool
+from diffusion_audit.io import results_dir, write_json
+from diffusion_audit.scorers import behavior_cloning_critic, calibrated_critic, diffusion_likelihood_proxy, oracle_scores
+from diffusion_audit.stats import mean_ci_columns, paired_high_minus_low_ci
+from diffusion_audit.toy_control import make_observations, trajectory_utilities
 
 
 N_VALUES = [1, 2, 4, 8, 16, 32]

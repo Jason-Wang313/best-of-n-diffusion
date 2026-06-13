@@ -10,22 +10,22 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from diffusion_best_of_n.action_ddpm import (
+from diffusion_audit.action_ddpm import (
     diffusion_internal_scores,
     sample_consistency_trajectories,
     sample_ddim_trajectories,
     sample_ddpm_trajectories,
     train_epsilon_denoiser,
 )
-from diffusion_best_of_n.diffusion_lite import make_expert_dataset, sample_denoised_trajectories, train_denoiser
-from diffusion_best_of_n.diversity import (
+from diffusion_audit.diffusion_lite import make_expert_dataset, sample_denoised_trajectories, train_denoiser
+from diffusion_audit.diversity import (
     diversity_summary,
     marginal_new_mode_discovery,
     trajectory_cluster_ids,
 )
-from diffusion_best_of_n.evaluation import curve_rows, evaluate_pool
-from diffusion_best_of_n.io import results_dir, write_json
-from diffusion_best_of_n.scorers import (
+from diffusion_audit.evaluation import curve_rows, evaluate_pool
+from diffusion_audit.io import results_dir, write_json
+from diffusion_audit.scorers import (
     anti_correlated_scores,
     apply_linear_critic,
     behavior_cloning_critic,
@@ -40,8 +40,8 @@ from diffusion_best_of_n.scorers import (
     uncertainty_aware_critic,
     weakly_aligned_scores,
 )
-from diffusion_best_of_n.stats import bootstrap_mean_ci, mean_ci_columns, paired_high_minus_low_ci
-from diffusion_best_of_n.toy_control import make_observations, trajectory_utilities
+from diffusion_audit.stats import bootstrap_mean_ci, mean_ci_columns, paired_high_minus_low_ci
+from diffusion_audit.toy_control import make_observations, trajectory_utilities
 
 
 N_VALUES = [1, 2, 4, 8, 16, 32]
@@ -518,7 +518,7 @@ def main() -> None:
     ax.set_xscale("log", base=2)
     ax.set_xlabel("N sampled action trajectories")
     ax.set_ylabel("Exact selected real utility")
-    ax.set_title("Faithful action diffusion: Best-of-N survives and fails by scorer tail")
+    ax.set_title("Faithful action diffusion: trajectory search survives and fails by scorer tail")
     ax.legend(fontsize=5.5, ncol=2)
     fig.tight_layout()
     fig.savefig(out_dir / "figures" / "true_diffusion_survival.png", dpi=160)
@@ -545,7 +545,7 @@ def main() -> None:
     x = np.arange(len(comp))
     axes[0].bar(x, comp["mean"].to_numpy(dtype=float), color=colors)
     axes[0].axhline(0.0, color="0.35", linewidth=0.8)
-    axes[0].set_ylabel("Best-of-N utility gain")
+    axes[0].set_ylabel("max-selection utility gain")
     axes[0].set_title("oracle high-N effect")
     axes[1].bar(x, comp["runtime_per_candidate_ms"].to_numpy(dtype=float), color=colors)
     axes[1].set_ylabel("ms / trajectory")

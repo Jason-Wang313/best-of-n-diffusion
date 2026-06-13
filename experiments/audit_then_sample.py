@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 from matplotlib.colors import ListedColormap
 
-from diffusion_best_of_n.controller import (
+from diffusion_audit.controller import (
     AUDIT_ROLLOUTS,
     BLOCK_HIGH_N,
     CALIBRATE_SCORER,
@@ -27,7 +27,7 @@ from diffusion_best_of_n.controller import (
     audit_then_sample_adaptive,
     validate_repair_with_bounds,
 )
-from diffusion_best_of_n.io import results_dir, write_json
+from diffusion_audit.io import results_dir, write_json
 
 
 REGIMES = [

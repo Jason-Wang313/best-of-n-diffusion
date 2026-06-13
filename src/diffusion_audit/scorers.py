@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from diffusion_best_of_n.toy_control import ToyObservation, trajectory_utilities
+from diffusion_audit.toy_control import ToyObservation, trajectory_utilities
 
 
 def trajectory_features(obs: ToyObservation, trajectories: np.ndarray) -> np.ndarray:

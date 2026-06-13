@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from torch import nn
 
-from diffusion_best_of_n.toy_control import ToyObservation, make_observations, mode_template, trajectory_utility
+from diffusion_audit.toy_control import ToyObservation, make_observations, mode_template, trajectory_utility
 
 
 IMAGE_SIZE = 32

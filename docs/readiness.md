@@ -59,7 +59,7 @@ Primary figures:
 - `results/figures/true_diffusion_survival.png`
 - `results/figures/true_diffusion_runtime.png`
 - `results/figures/true_diffusion_sampler_comparison.png`
-- `results/figures/pusht_best_of_n.png`
+- `results/figures/pusht_max_selection.png`
 
 ## Scope
 

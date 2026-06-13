@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import numpy as np
 
-from diffusion_best_of_n.action_ddpm import (
+from diffusion_audit.action_ddpm import (
     diffusion_internal_scores,
     sample_consistency_trajectories,
     sample_ddim_trajectories,
     sample_ddpm_trajectories,
     train_epsilon_denoiser,
 )
-from diffusion_best_of_n.diffusion_lite import make_expert_dataset
+from diffusion_audit.diffusion_lite import make_expert_dataset
 
 
 def test_action_ddpm_sampling_shapes_and_reproducibility():

@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from diffusion_best_of_n.benchmarks.pusht import (
+from diffusion_audit.benchmarks.pusht import (
     evaluate_pusht_trajectory,
     pusht_behavior_cloning_score,
     pusht_mode_template,

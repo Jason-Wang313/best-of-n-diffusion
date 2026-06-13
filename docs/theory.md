@@ -1,16 +1,16 @@
 # Theory
 
-## Finite Tie-Aware Best-of-N Law
+## Finite Tie-Aware Trajectory-Selection Law
 
 For one observation `o`, a diffusion policy samples action trajectories `tau_i ~ pi_theta(tau | o)`. Each trajectory has a scalar reranker score `S(o, tau_i)` and real utility `U(o, tau_i)`.
 
-Best-of-N selects `tau* = argmax_i S(o, tau_i)`. On a finite candidate pool sampled with replacement, the exact expected selected utility is determined by the finite joint distribution of `(S, U)`.
+Maximum-score trajectory selection chooses `tau* = argmax_i S(o, tau_i)`. On a finite candidate pool sampled with replacement, the exact expected selected utility is determined by the finite joint distribution of `(S, U)`.
 
 If score tie group `g` occupies sorted ranks `r_min(g)` through `r_max(g)` among `m` finite candidates, then its contribution at sample count `N` is:
 
 `mean_U(g) * [(r_max(g) / m)^N - ((r_min(g) - 1) / m)^N]`.
 
-The implementation in `src/diffusion_best_of_n/theory.py` supports real-valued utilities, binary success/failure utilities, exact selected-score curves, and Monte Carlo simulation with random tie handling.
+The implementation in `src/diffusion_audit/theory.py` supports real-valued utilities, binary success/failure utilities, exact selected-score curves, and Monte Carlo simulation with random tie handling.
 
 ## Diffusion-Specific Reading
 
@@ -37,7 +37,7 @@ The central failure mode is diffusion tail over-selection: a misaligned scorer c
 ## First-Principles Controller Propositions
 
 1. **Aligned tails permit high `N` only under lower-bound evidence.** If candidate diversity is effective and the empirical-Bernstein lower bounds on high-minus-low utility gain, top-score-tail utility lift, and latency-adjusted gain are all positive, high `N` is admissible for the audited finite distribution.
-2. **Anti-aligned tails block high `N`.** If the upper score tail is anti-aligned with real utility, Best-of-`N` increases selected score while selected real utility can fall. The conservative action is `block_high_N`.
+2. **Anti-aligned tails block high `N`.** If the upper score tail is anti-aligned with real utility, max-over-`N` increases selected score while selected real utility can fall. The conservative action is `block_high_N`.
 3. **Collapsed pools use effective `N`.** When effective sample diversity is near one or duplicate collapse is high, nominal `N` is replaced by a low effective sample count and the action is `increase_diversity`, not further sampling.
 4. **Latency creates a finite optimum.** With objective `U - lambda C(N,K)`, the best `N,K` may be smaller than the raw-utility optimum. The controller can therefore emit `stop_early` or `reduce_K`.
 5. **Repair is audited on held-out candidates.** Isotonic or affine calibration is admitted only when held-out lower-bound gates pass; otherwise the controller falls back to low `N` or blocks high `N`.

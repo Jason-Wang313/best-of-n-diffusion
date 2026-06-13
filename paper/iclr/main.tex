@@ -7,16 +7,17 @@
 \usepackage{booktabs}
 \usepackage{graphicx}
 \usepackage{hyperref}
+\hypersetup{hidelinks}
 \usepackage{url}
 
-\title{How Many Diffusion Trajectories Should a Robot Sample?\\
-Inference-Time Selection Laws for Diffusion Policies}
+\title{Audit-Then-Sample:\\
+Certifying When Diffusion Policies Should Search More Trajectories}
 
 % Leave \iclrfinalcopy commented for anonymous review submissions.
 \author{Anonymous Authors\\Paper under double-blind review}
 
 \newcommand{\ats}{Audit-Then-Sample}
-\newcommand{\bon}{Best-of-$N$}
+\newcommand{\maxsel}{maximum-score selection}
 \newcommand{\ci}{95\% CI}
 \newcommand{\lcb}{LCB}
 
@@ -24,21 +25,21 @@ Inference-Time Selection Laws for Diffusion Policies}
 \maketitle
 
 \begin{abstract}
-Diffusion action policies can sample many candidate trajectories for a single observation, making \bon{} inference an attractive test-time knob. This paper asks when the extra sampling is actually useful. We study finite observation-conditioned candidate pools in which each trajectory has a selection score and a measured task utility. A tie-aware selection law shows that larger $N$ always improves selected score, but need not improve real utility: the outcome depends on candidate diversity, upper-tail score--utility alignment, and latency. We propose \ats{}, an inference-time controller that admits high-$N$ sampling only when empirical lower-bound gates certify diversity, tail utility, utility gain, and latency-adjusted gain; otherwise it abstains, audits rollouts, repairs the scorer, increases diversity, reduces denoising depth, stops early, or blocks high-$N$ selection. The evidence is CPU-simulation evidence: controlled action samplers, learned state and small-image diffusion-policy-lite denoisers, true epsilon-prediction DDPM/DDIM action diffusion, and a PushT simulator path with actual rollout utility. The audited full run supports the conditional claim and rejects universal high-$N$ improvement: true DDPM and PushT aligned oracle reranking improve under high $N$, while anti-correlated or misaligned scorers are harmful and the controller has zero false admits in harmful negative controls.
+Diffusion action policies can sample many candidate trajectories for a single observation, making test-time trajectory search an attractive but risky knob. This paper asks when the extra sampling is actually useful. We study finite observation-conditioned candidate pools in which each trajectory has a selection score and a measured task utility. A tie-aware selection law shows that larger $N$ always improves selected score, but need not improve real utility: the outcome depends on candidate diversity, upper-tail score--utility alignment, and latency. We propose \ats{}, an inference-time controller that admits high-$N$ sampling only when empirical lower-bound gates certify diversity, tail utility, utility gain, and latency-adjusted gain; otherwise it abstains, audits rollouts, repairs the scorer, increases diversity, reduces denoising depth, stops early, or blocks high-$N$ selection. The evidence is CPU-simulation evidence: controlled action samplers, learned state and small-image diffusion-policy-lite denoisers, true epsilon-prediction DDPM/DDIM action diffusion, and a PushT simulator path with actual rollout utility. The audited full run supports the conditional claim and rejects universal high-$N$ improvement: true DDPM and PushT aligned oracle reranking improve under high $N$, while anti-correlated or misaligned scorers are harmful and the controller has zero false admits in harmful negative controls.
 \end{abstract}
 
 \section{Introduction}
 
 Diffusion Policy-style controllers generate action trajectories by iterative denoising conditioned on the current observation \citep{chi2023diffusionpolicy,ho2020ddpm,song2020ddim}. Because generation is stochastic, a deployment can sample multiple trajectories, score them with a critic, value model, likelihood proxy, or reranker, and execute the highest-scoring candidate. This creates a simple practical question: how many diffusion trajectories should a robot sample?
 
-The naive answer is ``more''. If the score is aligned with real task utility, more candidates increase the chance of finding a good trajectory. Yet the same maximization can amplify artifacts. A scorer that rewards shortcuts, risky modes, duplicated samples, or likelihood quirks can become worse as $N$ increases because \bon{} searches harder through the scorer's upper tail. This failure is not visible from selected score alone, and it can survive moderate average score--utility correlation. What matters is the finite joint distribution of score and utility in the high-score tail.
+The naive answer is ``more''. If the score is aligned with real task utility, more candidates increase the chance of finding a good trajectory. Yet the same maximization can amplify artifacts. A scorer that rewards shortcuts, risky modes, duplicated samples, or likelihood quirks can become worse as $N$ increases because maximum-score selection searches harder through the scorer's upper tail. This failure is not visible from selected score alone, and it can survive moderate average score--utility correlation. What matters is the finite joint distribution of score and utility in the high-score tail.
 
-We study \bon{} as an inference-time selection law over sampled action trajectories. For a fixed observation $o$, a generator produces a finite pool $\{(\tau_i,S_i,U_i)\}_{i=1}^M$, where $\tau_i$ is an action trajectory, $S_i$ is the selection score, and $U_i$ is measured task utility after optional latency cost. \bon{} draws $N$ candidates and executes the one with maximum score. This framing separates three mechanisms: diversity determines whether additional candidates expose new options; upper-tail alignment determines whether high-score candidates are high-utility candidates; and latency determines whether extra sampling remains worthwhile.
+We study maximum-score trajectory selection over sampled action trajectories. For a fixed observation $o$, a generator produces a finite pool $\{(\tau_i,S_i,U_i)\}_{i=1}^M$, where $\tau_i$ is an action trajectory, $S_i$ is the selection score, and $U_i$ is measured task utility after optional latency cost. The selector draws $N$ candidates and executes the one with maximum score. This framing separates three mechanisms: diversity determines whether additional candidates expose new options; upper-tail alignment determines whether high-score candidates are high-utility candidates; and latency determines whether extra sampling remains worthwhile.
 
 Our contribution is a diagnose-predict-control framework, not a broad robot benchmark suite.
 
 \begin{enumerate}
-\item We give a finite, tie-aware \bon{} law that separates monotone selected-score improvement from real-utility improvement.
+\item We give a finite, tie-aware trajectory-selection law that separates monotone selected-score improvement from real-utility improvement.
 \item We introduce \ats{}, a conservative controller that certifies high-$N$ only under lower-bound evidence and otherwise emits an abstention or repair action.
 \item We test the mechanism across controlled samplers, learned diffusion-policy-lite models, true action DDPM/DDIM sampling, and PushT simulator rollouts.
 \item We package each headline claim with CSV/JSON provenance, confidence intervals, negative controls, and overclaim checks.
@@ -88,7 +89,7 @@ Under the bounded audit assumptions used by these confidence gates, if the contr
 We evaluate four tiers, each with claim-audited artifacts. Controlled diffusion-like samplers isolate the mechanisms. Learned diffusion-policy-lite models train small state-conditioned and $32{\times}32$ image-conditioned denoisers over action horizons. The main learned diffusion tier trains true epsilon-prediction action DDPM/DDIM samplers, including fast DDIM, stochastic DDPM, one-step consistency-style, and clean-target ablations. The PushT tier uses \texttt{gym\_pusht/PushT-v0} with low-dimensional observations, heuristic demonstrations for CPU-feasible training, sampled action trajectories, and actual simulator rollout utility. PushT is simulator evidence for the inference-time law, not real-robot or full visual-policy validation.
 
 \begin{table}[t]
-\caption{Audited full-run evidence. Gains are high-minus-low selected utility unless noted. The \bon{} claim is conditional: aligned oracle or calibrated tails can help, while misaligned tails can hurt.}
+\caption{Audited full-run evidence. Gains are high-minus-low selected utility unless noted. The trajectory-search claim is conditional: aligned oracle or calibrated tails can help, while misaligned tails can hurt.}
 \label{tab:main-evidence}
 \centering
 \small
@@ -123,7 +124,7 @@ Learned-lite results support the diagnostic pipeline on learned state and small-
 \hfill
 \begin{minipage}{0.49\linewidth}
 \centering
-\includegraphics[width=\linewidth]{figures/pusht_best_of_n.png}
+\includegraphics[width=\linewidth]{figures/pusht_max_selection.png}
 \end{minipage}
 \caption{The conditional law survives beyond controlled samplers. Left: true epsilon-prediction action DDPM/DDIM sampling shows aligned oracle gains and harmful negative controls. Right: PushT simulator rollouts show aligned utility and coverage gains, low-diversity saturation, and misaligned-scorer failure.}
 \label{fig:diffusion-pusht}
@@ -151,7 +152,7 @@ Claim family & Primary tables & Primary figures \\
 Finite law and diversity & \path{controlled_sampler_effect_cis.csv}; \path{controlled_sampler_diversity.csv} & \path{controlled_sampler_curves.png} \\
 Controller and repair & \path{audit_then_sample_decisions.csv}; \path{audit_then_sample_calibration.csv} & \path{audit_then_sample_decision_regions.png} \\
 Runtime & \path{nk_budget_latency_effect_ci.csv}; \path{true_diffusion_runtime.csv}; \path{pusht_runtime.csv} & \path{nk_budget_phase_diagram.png}; \path{true_diffusion_runtime.png} \\
-True DDPM/DDIM and PushT & \path{true_diffusion_effect_cis.csv}; \path{pusht_rollout_metric_effect_cis.csv} & \path{true_diffusion_survival.png}; \path{pusht_best_of_n.png} \\
+True DDPM/DDIM and PushT & \path{true_diffusion_effect_cis.csv}; \path{pusht_rollout_metric_effect_cis.csv} & \path{true_diffusion_survival.png}; \path{pusht_max_selection.png} \\
 \bottomrule
 \end{tabular}
 \end{table}

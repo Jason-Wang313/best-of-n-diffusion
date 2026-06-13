@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from diffusion_best_of_n.scorers import aligned_scores
-from diffusion_best_of_n.toy_control import make_observations, sample_diffusion_like_pool
+from diffusion_audit.scorers import aligned_scores
+from diffusion_audit.toy_control import make_observations, sample_diffusion_like_pool
 
 
 def test_controlled_sampler_deterministic_with_fixed_seed():

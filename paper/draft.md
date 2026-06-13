@@ -2,9 +2,9 @@
 
 ## Abstract
 
-Diffusion action policies can generate many candidate trajectories for the same observation, making Best-of-N inference an attractive test-time tool. This paper asks when that extra sampling is actually worth using and what to do when it is not. We study a finite setting in which an observation-conditioned generator proposes action trajectories, a scorer or reranker selects the top candidate, and performance is measured by task utility after optional latency cost. The central result is not that larger `N` always helps. Best-of-`N` obeys measurable selection laws, and high-`N` sampling is useful only when the audited candidate pool supports it: Audit-Then-Sample admits extra diffusion trajectories only when conservative lower-bound gates pass and otherwise abstains, audits, repairs, stops early, increases diversity, reduces `K`, or blocks high-`N` selection.
+Diffusion action policies can generate many candidate trajectories for the same observation, making trajectory-search inference an attractive test-time tool. This paper asks when that extra sampling is actually worth using and what to do when it is not. We study a finite setting in which an observation-conditioned generator proposes action trajectories, a scorer or reranker selects the top candidate, and performance is measured by task utility after optional latency cost. The central result is not that larger `N` always helps. max-over-`N` obeys measurable selection laws, and high-`N` sampling is useful only when the audited candidate pool supports it: Audit-Then-Sample admits extra diffusion trajectories only when conservative lower-bound gates pass and otherwise abstains, audits, repairs, stops early, increases diversity, reduces `K`, or blocks high-`N` selection.
 
-We combine a tie-aware finite Best-of-N law with diagnostics for diversity, upper-tail alignment, latency-adjusted utility, confidence-bound gates, and an inference-time repair path. The evidence is CPU-simulation evidence: controlled action samplers isolate mechanisms, a learned Diffusion Policy-lite tier checks the pipeline on learned state and tiny-image denoisers, a true epsilon-prediction action DDPM/DDIM tier tests faithful diffusion sampling, and a PushT simulator tier evaluates actual rollout utility, coverage, success, and runtime. We characterize, diagnose, control, and repair inference-time selection behavior within this scope; we do not claim real-robot validation, universal high-`N` improvement, or full visual-policy validation.
+We combine a tie-aware finite trajectory-selection law with diagnostics for diversity, upper-tail alignment, latency-adjusted utility, confidence-bound gates, and an inference-time repair path. The evidence is CPU-simulation evidence: controlled action samplers isolate mechanisms, a learned Diffusion Policy-lite tier checks the pipeline on learned state and tiny-image denoisers, a true epsilon-prediction action DDPM/DDIM tier tests faithful diffusion sampling, and a PushT simulator tier evaluates actual rollout utility, coverage, success, and runtime. We characterize, diagnose, control, and repair inference-time selection behavior within this scope; we do not claim real-robot validation, universal high-`N` improvement, or full visual-policy validation.
 
 ## 1. Introduction
 
@@ -12,9 +12,9 @@ Diffusion Policy-style controllers are naturally stochastic. Given an observatio
 
 How many diffusion trajectories should a robot sample?
 
-The naive answer is "more." If the score is well aligned with task utility, sampling more candidates increases the chance of finding a high-utility trajectory. But the same selection pressure can amplify errors. A scorer that rewards artifacts, shortcuts, risky modes, or distribution-tail oddities can become worse as `N` increases because Best-of-N searches harder through the scorer's upper tail. The issue is not just average score-utility correlation. The decisive behavior often lives in the extreme candidates that become available only when sampling more trajectories.
+The naive answer is "more." If the score is well aligned with task utility, sampling more candidates increases the chance of finding a high-utility trajectory. But the same selection pressure can amplify errors. A scorer that rewards artifacts, shortcuts, risky modes, or distribution-tail oddities can become worse as `N` increases because maximum-score trajectory search scans harder through the scorer's upper tail. The issue is not just average score-utility correlation. The decisive behavior often lives in the extreme candidates that become available only when sampling more trajectories.
 
-This paper studies that inference-time selection problem as a finite selection law over sampled action trajectories. For each observation `o`, a generator produces a finite pool of candidate trajectories. Each candidate has a score `S(o, tau)` and real measured utility `U(o, tau)`. Best-of-N samples a subset of size `N`, selects the candidate with maximum score, and receives its utility. This framing lets us separate three mechanisms:
+This paper studies that inference-time selection problem as a finite selection law over sampled action trajectories. For each observation `o`, a generator produces a finite pool of candidate trajectories. Each candidate has a score `S(o, tau)` and real measured utility `U(o, tau)`. the selector samples a subset of size `N`, selects the candidate with maximum score, and receives its utility. This framing lets us separate three mechanisms:
 
 1. Diversity: larger `N` has little value if additional samples are duplicates or near-duplicates.
 2. Upper-tail alignment: larger `N` helps only if high-scoring tail candidates are also high-utility tail candidates.
@@ -24,7 +24,7 @@ The intended contribution is a diagnose-predict-fix framework, not a new robot b
 
 **Contributions.**
 
-1. We give a finite, tie-aware Best-of-N selection law for action-trajectory pools, separating selected-score improvement from selected real-utility improvement.
+1. We give a finite, tie-aware trajectory-selection law for action-trajectory pools, separating selected-score improvement from selected real-utility improvement.
 2. We build Audit-Then-Sample, a conservative inference-time controller that certifies `increase_N` only under diversity, tail-utility, utility-gain, and latency-adjusted lower-bound gates, and otherwise abstains or recommends a repair action.
 3. We test the mechanism beyond controlled samplers with learned Diffusion Policy-lite, true epsilon-prediction DDPM/DDIM action sampling, and a PushT simulator path with actual rollout utility, coverage, success, and runtime.
 4. We provide an audit infrastructure that maps headline claims to CSV/JSON artifacts, negative controls, confidence intervals, and scope gates.
@@ -40,9 +40,9 @@ For a fixed observation `o`, let the policy or sampler produce a finite candidat
 P(o) = {(tau_i, S_i, U_i)} for i = 1,...,M.
 ```
 
-`tau_i` is an action trajectory, `S_i` is a selection score, and `U_i` is the real utility measured by the task simulator or toy control objective. For a sample count `N <= M`, Best-of-N draws a subset of `N` candidates from the pool and executes the candidate with highest score. The expected selected score and expected selected real utility are finite-pool quantities, with ties handled by averaging over the tied top-score group.
+`tau_i` is an action trajectory, `S_i` is a selection score, and `U_i` is the real utility measured by the task simulator or toy control objective. For a sample count `N <= M`, the selector draws a subset of `N` candidates from the pool and executes the candidate with highest score. The expected selected score and expected selected real utility are finite-pool quantities, with ties handled by averaging over the tied top-score group.
 
-The finite law is implemented in `src/diffusion_best_of_n/theory.py` and tested in `tests/test_theory.py`. The empirical curves use:
+The finite law is implemented in `src/diffusion_audit/theory.py` and tested in `tests/test_theory.py`. The empirical curves use:
 
 - selected score: `E[S(argmax S)]`;
 - selected real utility: `E[U(argmax S)]`;
@@ -56,7 +56,7 @@ The paper's language uses "diffusion policy" only for learned action generators 
 
 The following first-principles propositions organize the empirical tests.
 
-**Proposition 1: selected-score monotonicity.** For any fixed finite pool and any scorer `S`, the expected selected score under Best-of-`N` is nondecreasing in `N`. This is a property of the maximum operator and does not imply that selected real utility is nondecreasing.
+**Proposition 1: selected-score monotonicity.** For any fixed finite pool and any scorer `S`, the expected selected score under max-over-`N` is nondecreasing in `N`. This is a property of the maximum operator and does not imply that selected real utility is nondecreasing.
 
 **Proposition 2: aligned upper tails.** If the scorer's high-score tail is aligned with real utility, larger `N` increases the probability of selecting high-utility candidates. The relevant condition is tail alignment, not only average score-utility correlation.
 
@@ -82,7 +82,7 @@ Full-run evidence: the controlled low-diversity high-minus-low selected-utility 
 
 ### 3.2 Upper-Tail Alignment
 
-Best-of-N is an upper-tail operator. It does not merely improve average score; it selects the maximum score among sampled candidates. Therefore the relevant question is whether the scorer's high-score tail is aligned with high real utility. A scorer can have reasonable average correlation while still failing in the tail.
+Maximum-score trajectory search is an upper-tail operator. It does not merely improve average score; it selects the maximum score among sampled candidates. Therefore the relevant question is whether the scorer's high-score tail is aligned with high real utility. A scorer can have reasonable average correlation while still failing in the tail.
 
 We report score-utility correlation, tail rank correlation, top-score-tail real utility, high-`N` regret, and oracle-minus-scorer gaps. Negative controls are essential: anti-correlated and tail-only misaligned scorers should fail as `N` increases, while oracle or calibrated scorers should improve or expose the gap.
 
@@ -267,7 +267,7 @@ Primary artifacts:
 - `results/tables/pusht_rollout_metric_effect_cis.csv`
 - `results/tables/pusht_rollout_metric_seed_aggregate.csv`
 - `results/tables/pusht_runtime.csv`
-- `results/figures/pusht_best_of_n.png`
+- `results/figures/pusht_max_selection.png`
 
 Full-run evidence: PushT aligned oracle selected-utility gain is `0.121` with CI low `0.0576`; selected max-coverage gain is `0.103` with CI low `0.0381`; selected final-coverage gain is `0.0216` with CI low `0.00099`; selected success gain is `0.0`. The artifact contains 2,880 simulator rollout rows, 2,100 rollout-metric seed rows, and 12 paired seed-episode units for critical CI rows.
 
@@ -312,7 +312,7 @@ The main empirical claim would be falsified if any harmful negative-control row 
 
 ## 6. Discussion
 
-The experiments support a conditional view of Best-of-N inference. The same act of sampling more diffusion trajectories can be beneficial, neutral, or harmful. It is beneficial when the generator produces diverse candidates and the scorer's upper tail tracks real utility. It is neutral when diversity collapses. It is harmful when the scorer's tail rewards artifacts or risky behaviors. It can also be rejected after a latency adjustment even when raw utility improves.
+The experiments support a conditional view of trajectory-search inference. The same act of sampling more diffusion trajectories can be beneficial, neutral, or harmful. It is beneficial when the generator produces diverse candidates and the scorer's upper tail tracks real utility. It is neutral when diversity collapses. It is harmful when the scorer's tail rewards artifacts or risky behaviors. It can also be rejected after a latency adjustment even when raw utility improves.
 
 This suggests that deployments should treat `N` as a controlled inference-time knob, not a default maximization target. A practical system should estimate diversity, audit scorer tail alignment, measure runtime, and maintain negative-control tests. When those diagnostics fail, the right action is not to sample more. It is to recalibrate the scorer, improve candidate diversity, reduce denoising depth, stop early, or block high-`N` selection.
 
@@ -324,4 +324,4 @@ We do not claim real-robot validation. We do not claim universal Diffusion Polic
 
 ## 8. Conclusion
 
-Best-of-N inference for diffusion action policies is governed by diversity, upper-tail alignment, and latency. More samples are worth using only when candidate diversity supplies new useful options, scorer tails select genuinely high-utility trajectories, and runtime cost does not dominate. The paper's contribution is a finite law, Audit-Then-Sample controller, repair path, and auditable evidence stack for deciding when extra diffusion trajectories are worth sampling.
+trajectory-search inference for diffusion action policies is governed by diversity, upper-tail alignment, and latency. More samples are worth using only when candidate diversity supplies new useful options, scorer tails select genuinely high-utility trajectories, and runtime cost does not dominate. The paper's contribution is a finite law, Audit-Then-Sample controller, repair path, and auditable evidence stack for deciding when extra diffusion trajectories are worth sampling.

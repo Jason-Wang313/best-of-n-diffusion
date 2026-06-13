@@ -1,6 +1,6 @@
 # Limitations
 
-The experiments are CPU-light. They are designed to isolate Best-of-N selection laws and diagnostics, not to establish real-robot performance.
+The experiments are CPU-light. They are designed to isolate trajectory-selection laws and diagnostics, not to establish real-robot performance.
 
 The controlled diffusion-like sampler is not a full Diffusion Policy. It is labeled separately so that hand-designed sampling results are not confused with learned denoising-policy results.
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 
-from diffusion_best_of_n.stats import bootstrap_mean_ci, paired_high_minus_low_ci
+from diffusion_audit.stats import bootstrap_mean_ci, paired_high_minus_low_ci
 
 
 def test_bootstrap_mean_ci_reports_positive_margin():

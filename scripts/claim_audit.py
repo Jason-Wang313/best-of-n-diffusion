@@ -15,7 +15,7 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-RESULTS = Path(os.environ.get("DIFFUSION_BON_RESULTS_DIR", ROOT / "results")).expanduser()
+RESULTS = Path(os.environ.get("DIFFUSION_AUDIT_RESULTS_DIR", ROOT / "results")).expanduser()
 if not RESULTS.is_absolute():
     RESULTS = ROOT / RESULTS
 
@@ -138,7 +138,7 @@ def forbidden_hits() -> list[dict[str, Any]]:
         re.compile(r"\bvalidated on real robots\b", re.I),
         re.compile(r"\breal[- ]robot validation\b", re.I),
         re.compile(r"\buniversal diffusion policy improvement\b", re.I),
-        re.compile(r"\bbest-of-n always helps\b", re.I),
+        re.compile(r"\btrajectory search always helps\b", re.I),
         re.compile(r"\bsolves robot manipulation\b", re.I),
         re.compile(r"\bfull[- ]visual diffusion policy validation\b", re.I),
         re.compile(r"\bfull[- ]scale visual manipulation validation\b", re.I),
@@ -221,19 +221,19 @@ def main() -> None:
         return {}
 
     theorem_ok = (
-        (ROOT / "src" / "diffusion_best_of_n" / "theory.py").exists()
+        (ROOT / "src" / "diffusion_audit" / "theory.py").exists()
         and (ROOT / "tests" / "test_theory.py").exists()
         and "tie-aware" in theory_doc
         and "finite" in theory_doc
         and "test_anti_aligned_score_degrades_selected_real_utility" in read_text(ROOT / "tests" / "test_theory.py")
-        and "test_tie_aware_best_of_n_uses_tie_group_mean_utility" in read_text(ROOT / "tests" / "test_theory.py")
+        and "test_tie_aware_max_selection_uses_tie_group_mean_utility" in read_text(ROOT / "tests" / "test_theory.py")
     )
     add(
         claims,
         "finite_law",
-        "Finite tie-aware Best-of-N law is implemented and tested.",
+        "Finite tie-aware trajectory-selection law is implemented and tested.",
         status(theorem_ok),
-        "src/diffusion_best_of_n/theory.py; tests/test_theory.py; docs/theory.md",
+        "src/diffusion_audit/theory.py; tests/test_theory.py; docs/theory.md",
     )
 
     aligned_high = agg_row(
@@ -779,7 +779,7 @@ def main() -> None:
         RESULTS / "figures" / "true_diffusion_survival.png",
         RESULTS / "figures" / "true_diffusion_runtime.png",
         RESULTS / "figures" / "true_diffusion_sampler_comparison.png",
-        RESULTS / "figures" / "pusht_best_of_n.png",
+        RESULTS / "figures" / "pusht_max_selection.png",
     ]
     table_min_rows = {
         "controlled_sampler_aggregate.csv": 42,
@@ -813,7 +813,7 @@ def main() -> None:
             "true_diffusion_survival.png",
             "true_diffusion_runtime.png",
             "true_diffusion_sampler_comparison.png",
-            "pusht_best_of_n.png",
+            "pusht_max_selection.png",
         ]
     )
     artifacts_weak = all(path.exists() and path.stat().st_size > 0 for path in required_artifacts)
@@ -1049,7 +1049,7 @@ def main() -> None:
     add(
         claims,
         "true_action_diffusion",
-        "Best-of-N effects survive a true epsilon-prediction DDPM/DDIM action diffusion policy, with one-step and clean-target ablations.",
+        "trajectory-search effects survive a true epsilon-prediction DDPM/DDIM action diffusion policy, with one-step and clean-target ablations.",
         status(true_strong, true_weak),
         strong_metrics["true_action_diffusion"],
     )
@@ -1213,7 +1213,7 @@ def main() -> None:
     add(
         claims,
         "pusht_rollout_metrics",
-        "PushT reports selected rollout coverage and success Best-of-N curves from actual simulator rollouts.",
+        "PushT reports selected rollout coverage and success trajectory-search curves from actual simulator rollouts.",
         status(pusht_rollout_metrics_strong, pusht_rollout_metrics_weak),
         strong_metrics["pusht_rollout_metrics"],
     )

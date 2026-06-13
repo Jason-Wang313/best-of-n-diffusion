@@ -4,7 +4,7 @@ Claims are promotable only when supported by `results/claims_status.json` and co
 
 ## Promotable Claim Categories
 
-1. The finite tie-aware Best-of-N law is implemented and tested.
+1. The finite tie-aware trajectory-selection law is implemented and tested.
 2. High `N` can help aligned diffusion trajectory selection.
 3. High `N` can hurt or saturate under scorer misalignment.
 4. Low sample diversity reduces the marginal value of increasing `N`.
@@ -16,7 +16,7 @@ Claims are promotable only when supported by `results/claims_status.json` and co
 10. The project is not a JEPA clone.
 11. Major promoted claims are backed by CSV/JSON artifacts.
 12. The learned Diffusion Policy-lite experiment includes state-conditioned and 32x32 image-conditioned variants with seed-level summaries, visual OOD regimes, confidence intervals, and receding-horizon evaluation. It is supporting evidence, not the main diffusion-policy credibility tier.
-13. A true epsilon-prediction action DDPM/DDIM policy reproduces the Best-of-N law with DDIM, stochastic DDPM-style sampling, one-step consistency-style sampling, measured runtime, and the older clean-target denoiser held as an ablation.
+13. A true epsilon-prediction action DDPM/DDIM policy reproduces the trajectory-selection law with DDIM, stochastic DDPM-style sampling, one-step consistency-style sampling, measured runtime, and the older clean-target denoiser held as an ablation.
 14. A PushT simulator benchmark path reranks actual sampled action trajectories using simulator rollout utility and shows aligned gains, low-diversity saturation, misaligned-scorer failure/gap behavior, and selected coverage/success curves.
 15. Runtime recommendations are backed by both abstract `N x K` budget sweeps and measured wall-clock runtime for true diffusion and PushT sampling/rollouts.
 16. Global diffusion-policy wording is promoted only when the true-DDPM and PushT rollout-metric gates pass. Controller/fix wording is promoted only when the controller/fix gate passes. Toy-controlled and learned-lite tiers remain diagnostic and supporting context.

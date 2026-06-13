@@ -3,13 +3,13 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from diffusion_best_of_n.alignment import (
+from diffusion_audit.alignment import (
     high_n_regret,
     score_utility_correlation,
     tail_rank_correlation,
     top_score_tail_real_utility,
 )
-from diffusion_best_of_n.deployment import (
+from diffusion_audit.deployment import (
     ALLOW_HIGH_N,
     BLOCK_HIGH_N,
     CALIBRATE_RERANKER,
@@ -19,7 +19,7 @@ from diffusion_best_of_n.deployment import (
     GateInputs,
     deployment_gate,
 )
-from diffusion_best_of_n.latency import (
+from diffusion_audit.latency import (
     latency_adjusted_utility,
     stop_rule_for_k,
     stop_rule_for_n,

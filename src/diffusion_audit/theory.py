@@ -1,4 +1,4 @@
-"""Finite Best-of-N laws for diffusion policy reranking.
+"""Finite maximum-score trajectory-selection laws for diffusion policy reranking.
 
 The law here is intentionally agnostic to how candidates are produced. In this
 repository the candidates are action trajectories sampled by a diffusion-like
@@ -67,12 +67,12 @@ def _sorted_tie_groups(scores: np.ndarray) -> tuple[np.ndarray, list[TieGroup]]:
     return order, groups
 
 
-def utility_best_of_n_finite(
+def utility_max_selection_finite(
     scores: Iterable[float] | np.ndarray,
     utilities: Iterable[float] | np.ndarray,
     n_values: Iterable[int],
 ) -> dict[int, float]:
-    """Exact finite-pool expected utility under Best-of-N selection.
+    """Exact finite-pool expected utility under maximum-score selection.
 
     Candidates are sampled independently with replacement from the finite pool.
     The maximum-score sample is selected. If the selected maximum score is tied
@@ -102,7 +102,7 @@ def utility_best_of_n_finite(
     return out
 
 
-def binary_best_of_n_finite(
+def binary_max_selection_finite(
     scores: Iterable[float] | np.ndarray,
     success: Iterable[bool | int | float] | np.ndarray,
     n_values: Iterable[int],
@@ -112,20 +112,20 @@ def binary_best_of_n_finite(
     success_arr = _as_1d_float(success, "success")
     if not np.all((success_arr == 0.0) | (success_arr == 1.0)):
         raise ValueError("success must contain only 0/1 values")
-    return utility_best_of_n_finite(scores, success_arr, n_values)
+    return utility_max_selection_finite(scores, success_arr, n_values)
 
 
-def selected_score_best_of_n_finite(
+def selected_score_max_selection_finite(
     scores: Iterable[float] | np.ndarray,
     n_values: Iterable[int],
 ) -> dict[int, float]:
-    """Exact expected selected score under Best-of-N."""
+    """Exact expected selected score under maximum-score selection."""
 
     score_arr = _as_1d_float(scores, "scores")
-    return utility_best_of_n_finite(score_arr, score_arr, n_values)
+    return utility_max_selection_finite(score_arr, score_arr, n_values)
 
 
-def simulate_best_of_n(
+def simulate_max_selection(
     scores: Iterable[float] | np.ndarray,
     utilities: Iterable[float] | np.ndarray,
     n: int,

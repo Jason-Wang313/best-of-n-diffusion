@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from diffusion_best_of_n.diffusion_lite import (
+from diffusion_audit.diffusion_lite import (
     IMAGE_SIZE,
     make_image_expert_dataset,
     render_observation_image,
 )
-from diffusion_best_of_n.toy_control import make_observations
+from diffusion_audit.toy_control import make_observations
 
 
 def test_render_observation_image_has_expected_shape_and_range():

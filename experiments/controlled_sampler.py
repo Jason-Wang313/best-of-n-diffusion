@@ -10,12 +10,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from diffusion_best_of_n.diversity import diversity_summary, marginal_diversity_gain
-from diffusion_best_of_n.evaluation import curve_rows, evaluate_pool
-from diffusion_best_of_n.io import results_dir, write_json
-from diffusion_best_of_n.scorers import aligned_scores, diffusion_likelihood_proxy, misaligned_tail_scores
-from diffusion_best_of_n.stats import mean_ci_columns, paired_high_minus_low_ci
-from diffusion_best_of_n.toy_control import make_observations, sample_diffusion_like_pool, trajectory_utilities
+from diffusion_audit.diversity import diversity_summary, marginal_diversity_gain
+from diffusion_audit.evaluation import curve_rows, evaluate_pool
+from diffusion_audit.io import results_dir, write_json
+from diffusion_audit.scorers import aligned_scores, diffusion_likelihood_proxy, misaligned_tail_scores
+from diffusion_audit.stats import mean_ci_columns, paired_high_minus_low_ci
+from diffusion_audit.toy_control import make_observations, sample_diffusion_like_pool, trajectory_utilities
 
 
 N_VALUES = [1, 2, 4, 8, 16, 32, 64]

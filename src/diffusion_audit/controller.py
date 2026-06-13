@@ -1,4 +1,4 @@
-"""Audit-Then-Sample inference controller for Best-of-N diffusion reranking."""
+"""Audit-Then-Sample inference controller for max-selection diffusion reranking."""
 
 from __future__ import annotations
 
@@ -8,14 +8,14 @@ from typing import Any, Literal
 
 import numpy as np
 
-from diffusion_best_of_n.alignment import (
+from diffusion_audit.alignment import (
     score_utility_correlation,
     tail_rank_correlation,
     top_score_tail_mask,
 )
-from diffusion_best_of_n.diversity import diversity_summary, trajectory_cluster_ids
-from diffusion_best_of_n.latency import latency_cost
-from diffusion_best_of_n.theory import utility_best_of_n_finite
+from diffusion_audit.diversity import diversity_summary, trajectory_cluster_ids
+from diffusion_audit.latency import latency_cost
+from diffusion_audit.theory import utility_max_selection_finite
 
 
 INCREASE_N = "increase_N"
@@ -379,7 +379,7 @@ def _objective_grid(
     runtime_measurements: Mapping[Any, float] | None,
     config: AuditThenSampleConfig,
 ) -> tuple[dict[int, float], dict[tuple[int, int], float]]:
-    raw_curve = utility_best_of_n_finite(scores, utilities, n_values)
+    raw_curve = utility_max_selection_finite(scores, utilities, n_values)
     adjusted: dict[tuple[int, int], float] = {}
     for n in n_values:
         for k in k_values:

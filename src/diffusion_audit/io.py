@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def results_dir() -> Path:
-    raw = os.environ.get("DIFFUSION_BON_RESULTS_DIR")
+    raw = os.environ.get("DIFFUSION_AUDIT_RESULTS_DIR")
     path = Path(raw).expanduser() if raw else ROOT / "results"
     if not path.is_absolute():
         path = ROOT / path

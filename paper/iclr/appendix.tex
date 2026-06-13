@@ -76,7 +76,7 @@ Scorers and repair & \path{scorer_comparison_curves.csv}; \path{scorer_compariso
 Latency & \path{nk_budget_phase.csv}; \path{nk_budget_latency_effect_ci.csv}; \path{true_diffusion_runtime.csv}; \path{pusht_runtime.csv} & \path{nk_budget_phase_diagram.png}; \path{true_diffusion_runtime.png} \\
 Learned-lite & \path{learned_policy_lite_training.csv}; \path{learned_policy_lite_effect_cis.csv}; \path{learned_policy_lite_receding_horizon.csv}; \path{learned_policy_lite_summary.json} & \path{learned_policy_lite_ood.png}; \path{toy_image_observations.png} \\
 True DDPM/DDIM & \path{true_diffusion_curves.csv}; \path{true_diffusion_effect_cis.csv}; \path{true_diffusion_sampler_comparison.csv}; \path{true_diffusion_summary.json} & \path{true_diffusion_survival.png}; \path{true_diffusion_sampler_comparison.png} \\
-PushT & \path{pusht_curves.csv}; \path{pusht_rollouts.csv}; \path{pusht_rollout_metric_effect_cis.csv}; \path{pusht_rollout_metric_seed_aggregate.csv}; \path{pusht_summary.json} & \path{pusht_best_of_n.png} \\
+PushT & \path{pusht_curves.csv}; \path{pusht_rollouts.csv}; \path{pusht_rollout_metric_effect_cis.csv}; \path{pusht_rollout_metric_seed_aggregate.csv}; \path{pusht_summary.json} & \path{pusht_max_selection.png} \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -90,7 +90,7 @@ PushT & \path{pusht_curves.csv}; \path{pusht_rollouts.csv}; \path{pusht_rollout_
 \toprule
 ID & Claim family & Status \\
 \midrule
-1 & Finite tie-aware \bon{} law is implemented and tested. & Supported \\
+1 & Finite tie-aware maximum-score selection law is implemented and tested. & Supported \\
 2--4 & High $N$ can help aligned selection, hurt or saturate under misalignment, and saturate under low diversity. & Supported \\
 5--7 & $N$ versus $K$ tradeoff, latency-adjusted finite optima, and at least one calibrated repair regime. & Supported \\
 8 & \ats{} chooses among increase, stop, repair, diversity, reduce-$K$, audit, and block actions with no harmful false admits. & Supported \\
@@ -137,7 +137,7 @@ rg -n "F(?:INAL RERUN)" paper docs README.md
 rg -n "T(?:ODO)|placehold(?:er)" paper docs README.md
 rg -n "almost\s+100|100[%]" paper docs README.md
 rg -n "validated on real robot[s]" paper docs README.md
-rg -n "Best-of-N always help[s]" paper docs README.md
+rg -n "trajectory search always help[s]" paper docs README.md
 \end{verbatim}
 The paper PDF is written to \texttt{paper/iclr/main.pdf}. The build wrapper compiles with the official ICLR 2026 style proxy and fails if the page label immediately before references exceeds nine pages.
 

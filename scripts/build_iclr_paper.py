@@ -13,6 +13,7 @@ from pathlib import Path
 
 
 MAIN_PAGE_LIMIT = 9
+DEFAULT_DESKTOP_PDF = Path.home() / "OneDrive" / "Desktop" / "best of n diffusion policy-v2.pdf"
 
 
 def run(cmd: list[str], cwd: Path) -> None:
@@ -84,6 +85,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--paper-dir", default=None, help="Path to paper/iclr")
     parser.add_argument("--limit", type=int, default=MAIN_PAGE_LIMIT, help="Main-text page limit")
+    parser.add_argument(
+        "--desktop-copy",
+        default=str(DEFAULT_DESKTOP_PDF),
+        help="Optional path for the versioned final PDF copy.",
+    )
     parser.add_argument("--clean", action="store_true", help="Clean LaTeX intermediates after a successful build")
     args = parser.parse_args()
 
@@ -119,6 +125,14 @@ def main() -> int:
         raise RuntimeError(
             f"Main text is {main_pages} pages, exceeding the ICLR initial-submission limit of {args.limit}."
         )
+
+    if args.desktop_copy:
+        desktop_copy = Path(args.desktop_copy).expanduser()
+        if not desktop_copy.is_absolute():
+            desktop_copy = repo_root / desktop_copy
+        desktop_copy.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(pdf_path, desktop_copy)
+        print(f"Desktop PDF: {desktop_copy}")
 
     if args.clean:
         latexmk = shutil.which("latexmk")

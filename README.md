@@ -1,6 +1,6 @@
-# Best-of-N Diffusion Policy
+# Audit-Then-Sample Diffusion Policy
 
-Paper title: How Many Diffusion Trajectories Should a Robot Sample? Inference-Time Selection Laws for Diffusion Policies.
+Paper title: Audit-Then-Sample: Certifying When Diffusion Policies Should Search More Trajectories.
 
 This repository studies inference-time selection for stochastic diffusion action generators. Given an observation `o`, a sampler proposes `N` action trajectories, a reranker score `S(o, tau)` selects the top-scoring candidate, and the measured quantity is real task utility minus optional denoising latency cost.
 
@@ -15,7 +15,7 @@ The core failure mode is diffusion tail over-selection:
 - high diversity plus misaligned scoring can select bad high-score outliers;
 - expensive denoising can make a smaller `N` or `K` preferable after latency cost.
 
-The project is scientifically distinct from WAM and JEPA Best-of-N projects. It centers stochastic action-trajectory diffusion, sample diversity, denoising steps, reranker alignment, and latency-adjusted deployment rules.
+The project is scientifically distinct from WAM and JEPA selection-law projects. It centers stochastic action-trajectory diffusion, sample diversity, denoising steps, reranker alignment, and latency-adjusted deployment rules.
 
 ## Commands
 

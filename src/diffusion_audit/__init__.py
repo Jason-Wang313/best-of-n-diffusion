@@ -1,6 +1,6 @@
-"""Best-of-N laws and diagnostics for diffusion action trajectory sampling."""
+"""Audit-Then-Sample diagnostics for diffusion action trajectory search."""
 
-from diffusion_best_of_n.controller import (
+from diffusion_audit.controller import (
     audit_then_sample,
     audit_then_sample_adaptive,
     empirical_bernstein_lcb,
@@ -9,23 +9,23 @@ from diffusion_best_of_n.controller import (
     validate_calibration_repair,
     validate_repair_with_bounds,
 )
-from diffusion_best_of_n.theory import (
-    binary_best_of_n_finite,
-    selected_score_best_of_n_finite,
-    simulate_best_of_n,
-    utility_best_of_n_finite,
+from diffusion_audit.theory import (
+    binary_max_selection_finite,
+    selected_score_max_selection_finite,
+    simulate_max_selection,
+    utility_max_selection_finite,
 )
 
 __all__ = [
     "audit_then_sample",
     "audit_then_sample_adaptive",
-    "binary_best_of_n_finite",
+    "binary_max_selection_finite",
     "empirical_bernstein_lcb",
     "empirical_bernstein_ucb",
     "fit_isotonic_score_calibration",
-    "selected_score_best_of_n_finite",
-    "simulate_best_of_n",
-    "utility_best_of_n_finite",
+    "selected_score_max_selection_finite",
+    "simulate_max_selection",
+    "utility_max_selection_finite",
     "validate_calibration_repair",
     "validate_repair_with_bounds",
 ]
